@@ -1,9 +1,29 @@
 package pages
 
+var meta = Meta{
+	Title: "Scott Powell",
+	Description: "Portfolio Site for Scott Powell",
+	Image: "",
+}
+
 templ Home() {
-		@layout(home())
+		@layout(home(), meta)
 }
 
 templ home() {
 		<h1>Home</h1>
+		<button id='signup'>Sign Up</button>
+		<script type="text/javascript">
+				signup.addEventListener("click", async (e) => {
+						const response = await fetch("signup", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: ""
+						});
+						const json = await response.json();
+						console.log(json);
+				});
+		</script>
 }
