@@ -12,12 +12,13 @@ import (
 )
 
 func main() {
-	// API Handlers
 	r := mux.NewRouter()
-	r.HandleFunc("/signup", services.HandleSignup).Methods(http.MethodPost)
 
 	// HTML Handlers
 	r.Handle("/", templ.Handler(pages.Home()))
+
+	// API Handlers
+	r.HandleFunc("/signup", services.HandleSignup).Methods(http.MethodPost)
 
 	fmt.Println("Listening on :3000")
 	http.ListenAndServe(":3000", r)

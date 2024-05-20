@@ -10,6 +10,12 @@ import "context"
 import "io"
 import "bytes"
 
+var meta = Meta{
+	Title:       "Scott Powell",
+	Description: "Portfolio Site for Scott Powell",
+	Image:       "",
+}
+
 func Home() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
@@ -23,7 +29,7 @@ func Home() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(home(), Meta{Title: "Scott Powell", Description: "Portfolio Site for Scott Powell", Image: ""}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout(home(), meta).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -47,7 +53,7 @@ func home() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Home</h1><button id=\"signup\">Sign Up</button><script type=\"text/javascript\">\n\t\t\t\tsignup.addEventListener(\"click\", async (e) => {\n\t\t\t\t\t\tconst response = await fetch(\"signup\", {\n\t\t\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\t\t\theaders: {\n\t\t\t\t\t\t\t\t\"Content-Type\": \"application/json\",\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tbody: \"\"\n\t\t\t\t\t\t});\n\t\t\t\t\t\tconst json = await response.json();\n\t\t\t\t\t\tconsole.log(json);\n\t\t\t\t});\n\t\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
