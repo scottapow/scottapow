@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "NodeNext",
+    "rootDir": "./",
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "~/*": ["./"]
+    },
+    "resolveJsonModule": true,
+    "allowArbitraryExtensions": true,
+    "allowJs": false,
+    "checkJs": false,
+    "declaration": true,
+    "outDir": "dist",
+    "removeComments": true,
+    "noEmit": false,
+    "noEmitHelpers": true,
+    "noEmitOnError": true,
+    "esModuleInterop": false,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include":  ["components", "styled-system"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "scottapow",
+  "version": "1.0.0",
+  "description": "Personal playground for all types of web projects",
+  "main": "main.go",
+  "devDependencies": {
+    "@pandacss/dev": "^0.41.0",
+    "typescript": "^5.5.2"
+  },
+  "scripts": {
+    "prepare": "panda codegen",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scottapow/scottapow.git"
+  },
+  "author": "Scott Powell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/scottapow/scottapow/issues"
+  },
+  "homepage": "https://github.com/scottapow/scottapow#readme",
+  "dependencies": {
+    "@types/node": "^20.14.9"
+  }
+}

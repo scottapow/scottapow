@@ -1,3 +1,10 @@
 {
-  "editor.detectIndentation": false
+  "editor.detectIndentation": false,
+  "html.suggest.html5": true,
+  "emmet.includeLanguages": {
+    "typescript": "html"
+  },
+  "emmet.syntaxProfiles": {
+    "typescript": ["jsx", "typescript", "html"]
+  }
 }
