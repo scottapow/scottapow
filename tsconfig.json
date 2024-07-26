@@ -2,20 +2,18 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "module": "NodeNext",
-    "rootDir": "./",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "rootDir": "js",
+    "moduleResolution": "Bundler",
     "paths": {
       "~/*": ["./"]
     },
-    "resolveJsonModule": true,
-    "allowArbitraryExtensions": true,
     "allowJs": false,
     "checkJs": false,
     "declaration": true,
-    "outDir": "dist",
+    "outDir": "static/js",
     "removeComments": true,
-    "noEmit": false,
+    "noEmit": true,
     "noEmitHelpers": true,
     "noEmitOnError": true,
     "esModuleInterop": false,
@@ -23,8 +21,8 @@
     "strict": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
-    "types": []
+    "types": [],
   },
-  "include":  ["components", "styled-system"],
+  "include":  ["js/**/*"],
   "exclude": ["node_modules"]
 }

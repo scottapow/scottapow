@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Personal playground for all types of web projects",
   "main": "main.go",
+  "type": "module",
   "devDependencies": {
     "@pandacss/dev": "^0.41.0",
     "typescript": "^5.5.2"
@@ -10,7 +11,8 @@
   "scripts": {
     "prepare": "panda codegen",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "tsc": "tsc"
+    "build:css": "npx panda && mv ./js/styled-system/styles.css ./static/css/main.css",
+    "build:js": "tsc && esbuild js/main.ts --bundle --outdir=static/js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
   },
   "homepage": "https://github.com/scottapow/scottapow#readme",
   "dependencies": {
-    "@types/node": "^20.14.9"
+    "@types/node": "^20.14.9",
+    "esbuild": "^0.23.0"
   }
 }

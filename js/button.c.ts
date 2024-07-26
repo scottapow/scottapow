@@ -1,4 +1,4 @@
-import { cva } from "../styled-system/css";
+import { cva } from "./styled-system/css/index.js";
 
 const styles = cva({
   base: {
@@ -42,18 +42,9 @@ class CButton extends HTMLButtonElement {
   constructor() {
     super();
 
-    const template = document.createElement('template');
     const size = this.getAttribute('size') as SizeOptions;
     const color = this.getAttribute('color') as ColorOptions;
-    template.innerHTML = /* html */`
-      <button class=${styles({ size, color })}>
-        im a button
-      </button>
-    `
-    let templateContent = template.content;
-
-    const shadowRoot = this.attachShadow({ mode: "open" });
-    shadowRoot.appendChild(templateContent.cloneNode(true));
+    this.classList.add(...styles({ size, color }).split(' '))
   }
 
   static observedAttributes = ["size", "color"];
@@ -76,5 +67,5 @@ class CButton extends HTMLButtonElement {
 }
 
 export default function registerCButton() {
-  customElements.define("c-button", CButton, { extends: "button" });
+  customElements.define("wc-button", CButton, { extends: "button" });
 };

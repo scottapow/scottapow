@@ -1,0 +1,30 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{{template "title"}}</title>
+        <meta name="description" content="{{template "description"}}"/>
+        <!-- icon -->
+        <!-- <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="48x48" /> -->
+        <!-- font -->
+        <!-- preloads -->
+        <!-- async script includes -->
+        <!-- OG/Twitter -->
+        <meta property="og:title" content="{{template "title"}}"/>
+        <meta property="og:description" content="{{template "description"}}"/>
+        <meta property="og:image" content="{{template "image"}}"/>
+        <meta name="twitter:title" content="{{template "title"}}"/>
+        <meta name="twitter:description" content="{{template "description"}}"/>
+        <meta name="twitter:image" content="{{template "image"}}"/>
+        <meta name="twitter:card" content="summary_large_image"/>
+        <link href="/static/css/main.css" rel="stylesheet" />
+        
+    </head>
+    <body>
+		{{template "content" .}}
+    </body>
+    <script src="/static/js/main.js"></script>
+</html>
+{{end}}
