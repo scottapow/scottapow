@@ -5,9 +5,9 @@ export default defineConfig({
   include: ["js/**/*.c.ts"],
   syntax: 'object-literal',
   theme: {
-    tokens: {
-    }
+    extend: {}
   },
   outdir: "js/styled-system",
-  outExtension: 'js'
+  outExtension: 'js',
+  validation: 'error'
 });

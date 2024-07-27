@@ -42,8 +42,8 @@ class CButton extends HTMLButtonElement {
   constructor() {
     super();
 
-    const size = this.getAttribute('size') as SizeOptions;
-    const color = this.getAttribute('color') as ColorOptions;
+    const size = (this.getAttribute('size') ?? 'md') as SizeOptions;
+    const color = (this.getAttribute('color') ?? 'primary') as ColorOptions;
     this.classList.add(...styles({ size, color }).split(' '))
   }
 

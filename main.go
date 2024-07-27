@@ -3,14 +3,14 @@ package main
 import (
 	"embed"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/scottapow/scottapow/services"
-
-	"html/template"
 )
 
 const (
@@ -21,12 +21,6 @@ const (
 
 //go:embed templates/* templates/layouts/*
 var files embed.FS
-
-type Meta struct {
-	Title       string
-	Description string
-	Image       string
-}
 
 func main() {
 	templates := make(map[string]*template.Template)
@@ -50,17 +44,19 @@ func main() {
 
 	r := mux.NewRouter()
 
+	// Include all static files
 	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
 	r.PathPrefix("/static/").Handler(s)
 
 	// HTML Handlers
+	staticId := uuid.New()
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, ok := templates["home.html"]
 		if !ok {
 			log.Printf("template home.html not found")
 		}
 		data := make(map[string]interface{})
-		data["foo"] = "bar"
+		data["BuildId"] = staticId
 
 		if err := t.Execute(w, data); err != nil {
 			log.Println(err)

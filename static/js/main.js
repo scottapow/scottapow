@@ -377,8 +377,8 @@
   var CButton = class extends HTMLButtonElement {
     constructor() {
       super();
-      const size = this.getAttribute("size");
-      const color = this.getAttribute("color");
+      const size = this.getAttribute("size") ?? "md";
+      const color = this.getAttribute("color") ?? "primary";
       this.classList.add(...styles({ size, color }).split(" "));
     }
     static observedAttributes = ["size", "color"];
