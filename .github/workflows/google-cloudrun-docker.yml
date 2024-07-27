@@ -55,6 +55,7 @@ env:
   GAR_LOCATION: ${{ vars.GAR_LOCATION }}
   SERVICE: ${{ vars.SERVICE_NAME }}
   REGION: ${{ vars.SERVICE_REGION }}
+  CREDENTIALS_JSON: ${{ secrets.GCP_SA_KEY }}
 
 jobs:
   deploy:
@@ -71,7 +72,7 @@ jobs:
         id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          credentials_json: '${{ env.CREDENTIALS_JSON }}'
 
       - name: Deploy to Cloud Run
         id: deploy
