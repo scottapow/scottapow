@@ -1,8 +1,8 @@
 .DS_Store
 main
 .env
-## Panda
 styled-system
 styled-system-studio
 node_modules
 dist/
+gha-creds-*.json
