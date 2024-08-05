@@ -1,16 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"embed"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/scottapow/scottapow/services"
+
+	_ "github.com/lib/pq"
 )
 
 const (
@@ -23,6 +28,33 @@ const (
 var files embed.FS
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	connStr := os.Getenv("DB_CONN_STR")
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+	  log.Fatal(err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query("select version()")
+	if err != nil {
+	  log.Fatal(err)
+	}
+	defer rows.Close()
+  
+	var version string
+	for rows.Next() {
+	  err := rows.Scan(&version)
+	  if err != nil {
+		log.Fatal(err)
+	  }
+	}
+	fmt.Printf("version=%s\n", version)
+
 	templates := make(map[string]*template.Template)
 	tmplFiles, err := fs.ReadDir(files, templatesDir)
 	if err != nil {
