@@ -1,0 +1,20 @@
+{{template "layout" .}}
+
+{{define "title"}}Scott Powell - Login Successful{{end}}
+{{define "description"}}Portfolio Site for Scott Powell{{end}}
+{{define "image"}}{{end}}
+
+{{define "content"}}
+<h1>Welcome</h1>
+<p><a href="/logout/{{.User.Provider}}">logout</a></p>
+<p>Name: {{.User.Name}} [{{.User.LastName}}, {{.User.FirstName}}]</p>
+<p>Email: {{.User.Email}}</p>
+<p>NickName: {{.User.NickName}}</p>
+<p>Location: {{.User.Location}}</p>
+<p>AvatarURL: {{.User.AvatarURL}} <img src="{{.User.AvatarURL}}"></p>
+<p>Description: {{.User.Description}}</p>
+<p>UserID: {{.User.UserID}}</p>
+<p>AccessToken: {{.User.AccessToken}}</p>
+<p>ExpiresAt: {{.User.ExpiresAt}}</p>
+<p>RefreshToken: {{.User.RefreshToken}}</p>
+{{end}}

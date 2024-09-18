@@ -51,8 +51,7 @@ on:
     branches: [ "main" ]
 
 env:
-  PROJECT_ID: ${{ vars.PROJECT_ID }}
-  GAR_LOCATION: ${{ vars.GAR_LOCATION }}
+  APP_ENV: ${{ vars.APP_ENV }}
   SERVICE: ${{ vars.SERVICE_NAME }}
   REGION: ${{ vars.SERVICE_REGION }}
   CREDENTIALS_JSON: ${{ secrets.GCP_SA_KEY }}
