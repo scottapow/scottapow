@@ -1,24 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"embed"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
-	"github.com/markbates/goth/providers/openidConnect"
+	auth "github.com/scottapow/scottapow/middleware"
 	"github.com/scottapow/scottapow/services"
-
-	_ "github.com/lib/pq"
 )
 
 const (
@@ -28,6 +23,7 @@ const (
 )
 
 var staticId = uuid.New()
+
 //go:embed templates/* templates/layouts/*
 var files embed.FS
 
@@ -37,45 +33,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// goth.UseProviders(
-	// 	google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), "http://localhost:3000/auth/google/callback"),
-	// )
-
-	openidConnect, _ := openidConnect.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), "http://localhost:3000/auth/openid-connect/callback", "https://accounts.google.com/.well-known/openid-configuration")
-	if openidConnect != nil {
-		goth.UseProviders(openidConnect)
-	}
-
-	connStr := os.Getenv("DB_CONN_STR")
-	db, err := sql.Open("postgres", connStr)
+	provider, err := auth.NewAuthProvider()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
-	rows, err := db.Query("select version()")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	var version string
-	for rows.Next() {
-		err := rows.Scan(&version)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	fmt.Printf("version=%s\n", version)
-
-
-	env := os.Getenv("APP_ENV")
 	templates := make(map[string]*template.Template)
 	tmplFiles, err := fs.ReadDir(files, templatesDir)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	for _, tmpl := range tmplFiles {
 		if tmpl.IsDir() {
 			continue
@@ -103,58 +70,70 @@ func main() {
 		}
 		data := make(map[string]interface{})
 		data["BuildId"] = staticId
-		data["Env"] = env
 
 		if err := t.Execute(w, data); err != nil {
 			log.Println(err)
 		}
 	})
 
-	if env == "development" {
-		r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
+		err := provider.ValidateSession(r)
+		if err != nil {
+			http.Redirect(w, r, "/auth/"+provider.OIDC.Name(), http.StatusTemporaryRedirect)
+		}
+
+		t, ok := templates["protected.html"]
+		if !ok {
+			log.Printf("template protected.html not found")
+		}
+		data := make(map[string]interface{})
+		data["BuildId"] = staticId
+
+		if err := t.Execute(w, data); err != nil {
+			log.Println(err)
+		}
+	})
+
+	r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+		t, ok := templates["user.html"]
+		if !ok {
+			log.Printf("template user.html not found")
+		}
+		data := make(map[string]interface{})
+		data["BuildId"] = staticId
+		user, err := gothic.CompleteUserAuth(w, r)
+		if err != nil {
+			fmt.Fprintln(w, err)
+			return
+		}
+		data["User"] = user
+		if err := t.Execute(w, data); err != nil {
+			log.Println(err)
+		}
+	})
+	r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		gothic.Logout(w, r)
+		w.Header().Set("Location", "/")
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	})
+	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		// try to get the user without re-authenticating
+		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
 			t, ok := templates["user.html"]
 			if !ok {
 				log.Printf("template user.html not found")
 			}
+			fmt.Println(user)
 			data := make(map[string]interface{})
 			data["BuildId"] = staticId
-			data["Env"] = env
-			user, err := gothic.CompleteUserAuth(w, r)
-			if err != nil {
-				fmt.Fprintln(w, err)
-				return
-			}
-			fmt.Println(user)
 			data["User"] = user
 			if err := t.Execute(w, data); err != nil {
 				log.Println(err)
 			}
-		})
-		r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
-			gothic.Logout(w, r)
-			w.Header().Set("Location", "/")
-			w.WriteHeader(http.StatusTemporaryRedirect)
-		})
-		r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
-			// try to get the user without re-authenticating
-			if user, err := gothic.CompleteUserAuth(w, r); err == nil {
-				t, ok := templates["user.html"]
-				if !ok {
-					log.Printf("template user.html not found")
-				}
-				fmt.Println(user)
-				data := make(map[string]interface{})
-				data["BuildId"] = staticId
-				data["Env"] = env
-				data["User"] = user
-				if err := t.Execute(w, data); err != nil {
-					log.Println(err)
-				}
-			} else {
-				gothic.BeginAuthHandler(w, r)
-			}
-		})
-	}
+		} else {
+			gothic.BeginAuthHandler(w, r)
+		}
+	})
 
 	// API Handlers
 	r.HandleFunc("/signup", services.HandleSignup).Methods(http.MethodPost)
