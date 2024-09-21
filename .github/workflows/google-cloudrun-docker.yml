@@ -55,6 +55,9 @@ env:
   SERVICE: ${{ vars.SERVICE_NAME }}
   REGION: ${{ vars.SERVICE_REGION }}
   CREDENTIALS_JSON: ${{ secrets.GCP_SA_KEY }}
+  GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
+  GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
 
 jobs:
   deploy:
