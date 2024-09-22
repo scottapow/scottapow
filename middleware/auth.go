@@ -44,7 +44,7 @@ func NewAuthProvider() (*AuthProvider, error) {
 	oidc, err := openidConnect.New(
 		os.Getenv("GOOGLE_KEY"),
 		os.Getenv("GOOGLE_SECRET"),
-		"http://localhost:3000/auth/openid-connect/callback",
+		os.Getenv("HOST")+"/auth/openid-connect/callback",
 		"https://accounts.google.com/.well-known/openid-configuration",
 		"openid", "profile", "email",
 	)

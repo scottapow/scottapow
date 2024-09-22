@@ -84,6 +84,8 @@ jobs:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           source: ./
+          env_vars: |-
+            HOST:https://www.scottpowell.dev
           secrets: |-
             GOOGLE_KEY=GOOGLE_KEY:latest
             GOOGLE_SECRET=GOOGLE_SECRET:latest
