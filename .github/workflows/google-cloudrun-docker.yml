@@ -85,10 +85,10 @@ jobs:
           region: ${{ env.REGION }}
           source: ./
           secrets: |-
-            GOOGLE_KEY:projects/670687354304/secrets/GOOGLE_KEY/versions/latest
-            GOOGLE_SECRET:projects/670687354304/secrets/GOOGLE_SECRET/versions/latest
-            SESSION_SECRET:projects/670687354304/secrets/SESSION_SECRET/versions/latest
-            DB_CONN_STR:projects/670687354304/secrets/DB_CONN_STR/versions/latest
+            GOOGLE_KEY:projects/670687354304/secrets/GOOGLE_KEY:latest
+            GOOGLE_SECRET:projects/670687354304/secrets/GOOGLE_SECRET:latest
+            SESSION_SECRET:projects/670687354304/secrets/SESSION_SECRET:latest
+            DB_CONN_STR:projects/670687354304/secrets/DB_CONN_STR:latest
 
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}
