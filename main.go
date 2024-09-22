@@ -28,10 +28,7 @@ var staticId = uuid.New()
 var files embed.FS
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	godotenv.Load()
 
 	provider, err := auth.NewAuthProvider()
 	if err != nil {
