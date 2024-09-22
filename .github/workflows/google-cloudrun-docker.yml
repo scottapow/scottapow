@@ -58,6 +58,7 @@ env:
   GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
   GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
   SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  DB_CONN_STR: ${{ secrets.DB_CONN_STR }}
 
 jobs:
   deploy:
@@ -83,6 +84,11 @@ jobs:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           source: ./
+          secrets: |-
+            GOOGLE_KEY:projects/670687354304/secrets/GOOGLE_KEY/versions/latest
+            GOOGLE_SECRET:projects/670687354304/secrets/GOOGLE_SECRET/versions/latest
+            SESSION_SECRET:projects/670687354304/secrets/SESSION_SECRET/versions/latest
+            DB_CONN_STR:projects/670687354304/secrets/DB_CONN_STR/versions/latest
 
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}

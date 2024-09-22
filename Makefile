@@ -1,7 +1,7 @@
 include .env
 
 deploy:
-	gcloud run deploy ${GCLOUD_SERVICE_NAME} --source .
+	gcloud run deploy scottapow --source ./ --format json --region us-east1
 
 run:
 	go run main.go
