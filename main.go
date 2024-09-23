@@ -114,6 +114,8 @@ func main() {
 		w.WriteHeader(http.StatusTemporaryRedirect)
 	})
 	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.Host)
+		fmt.Println(r)
 		// try to get the user without re-authenticating
 		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
 			t, ok := templates["user.html"]
