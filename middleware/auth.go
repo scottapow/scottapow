@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -29,6 +30,12 @@ func (p *AuthProvider) ValidateSession(r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	url, err := sess.GetAuthURL()
+	if err != nil {
+		fmt.Println("Error getting auth url from session")
+		return err
+	}
+	fmt.Println(url)
 
 	params := r.URL.Query()
 	if params.Encode() == "" && r.Method == "POST" {
