@@ -47,14 +47,14 @@ func NewAuthProvider() (*AuthProvider, error) {
 	store.MaxAge(86400 * 1) // 1 day
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
-	store.Options.Secure = strings.HasPrefix(os.Getenv("ROOT"), "https")
+	store.Options.Secure = !strings.HasPrefix(os.Getenv("HOST"), "http")
 
 	gothic.Store = store
 
 	oidc, err := openidConnect.New(
 		os.Getenv("GOOGLE_KEY"),
 		os.Getenv("GOOGLE_SECRET"),
-		os.Getenv("ROOT")+"/auth/openid-connect/callback",
+		os.Getenv("HOST")+"/auth/openid-connect/callback",
 		"https://accounts.google.com/.well-known/openid-configuration",
 		"openid", "profile", "email",
 	)
