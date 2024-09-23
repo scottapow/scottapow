@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -74,6 +76,9 @@ func main() {
 	})
 
 	r.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
+		if r.Host == "scottapow-32jljyu2ga-ue.a.run.app" {
+			r.Host = strings.Replace(os.Getenv("HOST"), "https://", "", 1)
+		}
 		err := provider.ValidateSession(r)
 		if err != nil {
 			http.Redirect(w, r, "/auth/"+provider.OIDC.Name(), http.StatusTemporaryRedirect)
@@ -92,6 +97,9 @@ func main() {
 	})
 
 	r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+		if r.Host == "scottapow-32jljyu2ga-ue.a.run.app" {
+			r.Host = strings.Replace(os.Getenv("HOST"), "https://", "", 1)
+		}
 		t, ok := templates["user.html"]
 		if !ok {
 			log.Printf("template user.html not found")
@@ -114,8 +122,12 @@ func main() {
 		w.WriteHeader(http.StatusTemporaryRedirect)
 	})
 	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Host)
-		fmt.Println(r)
+		fmt.Printf("%#v\n", r)
+		fmt.Println("URL")
+		fmt.Println(r.URL)
+		if r.Host == "scottapow-32jljyu2ga-ue.a.run.app" {
+			r.Host = strings.Replace(os.Getenv("HOST"), "https://", "", 1)
+		}
 		// try to get the user without re-authenticating
 		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
 			t, ok := templates["user.html"]
