@@ -6,15 +6,9 @@
 
 {{define "content"}}
 <h1>Welcome</h1>
-<p><a href="/logout/{{.User.Provider}}">logout</a></p>
-<p>Name: {{.User.Name}} [{{.User.LastName}}, {{.User.FirstName}}]</p>
+<p><a href="/logout/google">logout</a></p>
+<p>Name: {{.User.Fullname}} [{{.User.Surname}}, {{.User.Firstname}}]</p>
 <p>Email: {{.User.Email}}</p>
-<p>NickName: {{.User.NickName}}</p>
-<p>Location: {{.User.Location}}</p>
-<p>AvatarURL: {{.User.AvatarURL}} <img src="{{.User.AvatarURL}}"></p>
-<p>Description: {{.User.Description}}</p>
-<p>UserID: {{.User.UserID}}</p>
-<p>AccessToken: {{.User.AccessToken}}</p>
-<p>ExpiresAt: {{.User.ExpiresAt}}</p>
-<p>RefreshToken: {{.User.RefreshToken}}</p>
+<p>AvatarURL: {{.User.PictureURL}} <img src="{{.User.PictureURL}}"></p>
+<p>UserID: {{.User.ID}}</p>
 {{end}}

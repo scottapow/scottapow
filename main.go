@@ -7,21 +7,20 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"os"
-	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/markbates/goth/gothic"
-	auth "github.com/scottapow/scottapow/middleware"
 	"github.com/scottapow/scottapow/services"
+	"golang.org/x/oauth2"
 )
 
 const (
 	layoutsDir   = "templates/layouts"
 	templatesDir = "templates"
 	extension    = "/*.html"
+	cookieName   = "_oauthstate"
 )
 
 var staticId = uuid.New()
@@ -32,7 +31,7 @@ var files embed.FS
 func main() {
 	godotenv.Load()
 
-	provider, err := auth.NewAuthProvider()
+	auth, err := NewAuthProvider()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,6 +61,54 @@ func main() {
 	r.PathPrefix("/static/").Handler(s)
 
 	// HTML Handlers
+	r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+		oauthState, _ := r.Cookie(cookieName)
+		if r.FormValue("state") != oauthState.Value {
+			fmt.Println("invalid oauth google state")
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			return
+		}
+
+		user, err := auth.GetUserDataFromGoogle(r.FormValue("code"))
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			return
+		}
+
+		// GetOrCreate User in your db.
+		// Redirect or response with a token.
+		// More code .....
+		fmt.Printf("%+v\n", user)
+
+		if err != nil {
+			fmt.Fprintln(w, err)
+			return
+		}
+		t, ok := templates["user.html"]
+		if !ok {
+			log.Printf("template user.html not found")
+		}
+		data := make(map[string]interface{})
+		data["BuildId"] = staticId
+		data["User"] = user
+		t.Execute(w, data)
+	})
+	// r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Set("Location", "/")
+	// 	w.WriteHeader(http.StatusTemporaryRedirect)
+	// })
+	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		state, _ := RandString(32)
+		url := auth.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
+		cookie := http.Cookie{
+			Name:    cookieName,
+			Value:   state,
+			Expires: time.Now().Add(time.Hour * 24 * 30),
+		}
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	})
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, ok := templates["home.html"]
 		if !ok {
@@ -74,77 +121,20 @@ func main() {
 			log.Println(err)
 		}
 	})
+	// r.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
+	// 	err := provider.ValidateSession(r)
+	// 	if err != nil {
+	// 		http.Redirect(w, r, "/auth/"+provider.OIDC.Name(), http.StatusTemporaryRedirect)
+	// 	}
 
-	r.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
-		if r.Host == "scottapow-32jljyu2ga-ue.a.run.app" {
-			r.Host = strings.Replace(os.Getenv("HOST"), "https://", "", 1)
-		}
-		err := provider.ValidateSession(r)
-		if err != nil {
-			http.Redirect(w, r, "/auth/"+provider.OIDC.Name(), http.StatusTemporaryRedirect)
-		}
-
-		t, ok := templates["protected.html"]
-		if !ok {
-			log.Printf("template protected.html not found")
-		}
-		data := make(map[string]interface{})
-		data["BuildId"] = staticId
-
-		if err := t.Execute(w, data); err != nil {
-			log.Println(err)
-		}
-	})
-
-	r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
-		if r.Host == "scottapow-32jljyu2ga-ue.a.run.app" {
-			r.Host = strings.Replace(os.Getenv("HOST"), "https://", "", 1)
-		}
-		t, ok := templates["user.html"]
-		if !ok {
-			log.Printf("template user.html not found")
-		}
-		data := make(map[string]interface{})
-		data["BuildId"] = staticId
-		user, err := gothic.CompleteUserAuth(w, r)
-		if err != nil {
-			fmt.Fprintln(w, err)
-			return
-		}
-		data["User"] = user
-		if err := t.Execute(w, data); err != nil {
-			log.Println(err)
-		}
-	})
-	r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
-		gothic.Logout(w, r)
-		w.Header().Set("Location", "/")
-		w.WriteHeader(http.StatusTemporaryRedirect)
-	})
-	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("%#v\n", r)
-		fmt.Println("URL")
-		fmt.Println(r.URL)
-		if r.Host == "scottapow-32jljyu2ga-ue.a.run.app" {
-			r.Host = strings.Replace(os.Getenv("HOST"), "https://", "", 1)
-		}
-		// try to get the user without re-authenticating
-		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
-			t, ok := templates["user.html"]
-			if !ok {
-				log.Printf("template user.html not found")
-			}
-			fmt.Println(user)
-			data := make(map[string]interface{})
-			data["BuildId"] = staticId
-			data["User"] = user
-			if err := t.Execute(w, data); err != nil {
-				log.Println(err)
-			}
-		} else {
-			gothic.BeginAuthHandler(w, r)
-		}
-	})
+	// 	t, ok := templates["protected.html"]
+	// 	if !ok {
+	// 		log.Printf("template protected.html not found")
+	// 	}
+	// 	data := make(map[string]interface{})
+	// 	data["BuildId"] = staticId
+	// 	t.Execute(w, data)
+	// })
 
 	// API Handlers
 	r.HandleFunc("/signup", services.HandleSignup).Methods(http.MethodPost)
