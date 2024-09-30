@@ -102,36 +102,24 @@ func main() {
 			"PictureURL": u.PictureURL,
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		signedJWT, err := token.SignedString(os.Getenv("JWT_SECRET"))
+		signedJWT, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 
 		session.Values["claims"] = signedJWT
 		session.Values["gat"] = oat.AccessToken
-		session.Values["e"] = oat.Expiry.Unix()
-		session.Values["r"] = oat.RefreshToken
+		session.Values["expiry"] = oat.Expiry.Unix()
+		session.Values["grt"] = oat.RefreshToken
 		err = session.Save(r, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// GetOrCreate User in your db.
-		// Redirect or response with a token.
-		// More code .....
-		fmt.Printf("%+v\n", oat.AccessToken)
-		fmt.Printf("token %+v\n", token)
-
-		if err != nil {
-			fmt.Fprintln(w, err)
-			return
-		}
-		t, ok := templates["user.html"]
-		if !ok {
-			log.Printf("template user.html not found")
-		}
-		data := make(map[string]interface{})
-		data["BuildId"] = staticId
-		data["User"] = u
-		t.Execute(w, data)
+		fmt.Printf("jwt %+v\n", signedJWT)
+		http.Redirect(w, r, "/user", http.StatusTemporaryRedirect)
 	})
 	// r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
 	// 	w.Header().Set("Location", "/")
@@ -144,7 +132,7 @@ func main() {
 		cookie := http.Cookie{
 			Name:    cookieName,
 			Value:   state,
-			Expires: time.Now().Add(time.Hour * 24 * 30),
+			Expires: time.Now().Add(time.Hour * 1),
 		}
 		http.SetCookie(w, &cookie)
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
@@ -164,18 +152,42 @@ func main() {
 	r.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		session, err := auth.Store.Get(r, AuthCookieName)
 		if err != nil {
-			http.Redirect(w, r, "/auth/google", http.StatusTemporaryRedirect)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			// http.Redirect(w, r, "/auth/google", http.StatusTemporaryRedirect)
 		}
-		fmt.Println(session.Values)
-		t, ok := templates["home.html"]
-		if !ok {
-			log.Printf("template home.html not found")
-		}
-		data := make(map[string]interface{})
-		data["BuildId"] = staticId
 
-		if err := t.Execute(w, data); err != nil {
-			log.Println(err)
+		expiry := session.Values["expiry"].(int64)
+		claims := session.Values["claims"].(string)
+		accessToken := session.Values["gat"].(string)
+
+		if time.Now().Unix() > expiry || &accessToken == nil {
+			http.Error(w, "Access Expired", http.StatusUnauthorized)
+		}
+
+		token, err := jwt.Parse(claims, func(tok *jwt.Token) (interface{}, error) {
+			if _, ok := tok.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", tok.Header["alg"])
+			}
+			return []byte(os.Getenv("JWT_SECRET")), nil
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			t, ok := templates["user.html"]
+			if !ok {
+				log.Printf("template home.html not found")
+			}
+			data := make(map[string]interface{})
+			data["BuildId"] = staticId
+			data["User"] = claims
+
+			if err := t.Execute(w, data); err != nil {
+				log.Println(err)
+			}
+		} else {
+			fmt.Println(err)
 		}
 	})
 	// r.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
