@@ -8,11 +8,15 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
-const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+const (
+	oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+	AuthCookieName    = "_oauthstate"
+)
 
 var (
 	clientId     = os.Getenv("GOOGLE_KEY")
@@ -21,6 +25,16 @@ var (
 
 type AuthProvider struct {
 	Config *oauth2.Config
+	Store  *sessions.CookieStore
+}
+
+type Claims {
+	Email      string
+	Surname    string
+	Firstname  string
+	ID         string
+	Fullname   string
+	PictureURL string
 }
 
 type User struct {
@@ -33,50 +47,44 @@ type User struct {
 }
 
 func NewAuthProvider() (*AuthProvider, error) {
-	ctx := context.Background()
-	// store := sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
-	// store.MaxAge(86400 * 1) // 1 day
-	// store.Options.Secure = true
-	// store.Options.SameSite = http.SameSiteStrictMode
-	// store.Options.Path = "/"
-	// store.Options.HttpOnly = true
-	// store.Options.Secure = true
+	store := sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
+	store.MaxAge(86400 * 1) // 1 day
+	store.Options.Secure = true
+	store.Options.SameSite = http.SameSiteStrictMode
+	store.Options.Path = "/"
+	store.Options.HttpOnly = true
+	store.Options.Secure = true
 
-	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
-	if err != nil {
-		return nil, err
-	}
-	oauth2Config := &oauth2.Config{
+	config := &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_KEY"),
 		ClientSecret: os.Getenv("GOOGLE_SECRET"),
 		RedirectURL:  os.Getenv("HOST") + "/auth/google/callback",
-		Endpoint:     provider.Endpoint(),
+		Endpoint:     google.Endpoint,
 		Scopes:       []string{"profile", "email"},
 	}
 
 	return &AuthProvider{
-		Config: oauth2Config,
+		Config: config,
+		Store:  store,
 	}, nil
 }
 
-func (p *AuthProvider) GetUserDataFromGoogle(code string) (*User, error) {
-	// Use code to get token and get user info from Google.
-
+func (p *AuthProvider) GetToken(code string) (*oauth2.Token, error) {
 	token, err := p.Config.Exchange(context.Background(), code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange wrong: %s", err.Error())
 	}
+	return token, nil
+}
+func (p *AuthProvider) GetUserDataFromGoogle(token *oauth2.Token) (*User, error) {
 	client := p.Config.Client(context.Background(), token)
 	r, err := client.Get(oauthGoogleUrlAPI)
-	if err != nil {
+	defer r.Body.Close()
+
+	if err != nil || r.StatusCode != 200 {
 		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
 
-	defer r.Body.Close()
-
-	if err != nil {
-		return nil, fmt.Errorf("failed read response: %s", err.Error())
-	}
 	return makeUser(r)
 }
 

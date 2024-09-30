@@ -58,6 +58,7 @@ env:
   GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
   GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
   SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
   DB_CONN_STR: ${{ secrets.DB_CONN_STR }}
 
 jobs:
