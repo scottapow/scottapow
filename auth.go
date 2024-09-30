@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -28,13 +29,14 @@ type AuthProvider struct {
 	Store  *sessions.CookieStore
 }
 
-type Claims {
+type Claims struct {
 	Email      string
 	Surname    string
 	Firstname  string
 	ID         string
 	Fullname   string
 	PictureURL string
+	jwt.RegisteredClaims
 }
 
 type User struct {

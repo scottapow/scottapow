@@ -86,20 +86,20 @@ func main() {
 		}
 
 		// get user or create
-		user, err := auth.GetUserDataFromGoogle(oat)
+		u, err := auth.GetUserDataFromGoogle(oat)
 		if err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
 
-		claims := &Claims{
-			"Email":      user.Email,
-			"Firstname":  user.Firstname,
-			"Surname":    user.Surname,
-			"ID":         user.ID,
-			"Fullname":   user.Fullname,
-			"PictureURL": user.PictureURL,
+		claims := &jwt.MapClaims{
+			"Email":      u.Email,
+			"Firstname":  u.Firstname,
+			"Surname":    u.Surname,
+			"ID":         u.ID,
+			"Fullname":   u.Fullname,
+			"PictureURL": u.PictureURL,
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		signedJWT, err := token.SignedString(os.Getenv("JWT_SECRET"))
@@ -130,7 +130,7 @@ func main() {
 		}
 		data := make(map[string]interface{})
 		data["BuildId"] = staticId
-		data["User"] = user
+		data["User"] = u
 		t.Execute(w, data)
 	})
 	// r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
