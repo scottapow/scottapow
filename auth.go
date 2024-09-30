@@ -28,7 +28,7 @@ type AuthProvider struct {
 	Store  *sessions.CookieStore
 }
 
-type Claims {
+type Claims struct {
 	Email      string
 	Surname    string
 	Firstname  string
