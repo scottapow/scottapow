@@ -11,7 +11,7 @@
     "allowJs": false,
     "checkJs": false,
     "declaration": true,
-    "outDir": "static/js",
+    "outDir": "web/static/js",
     "removeComments": true,
     "noEmit": true,
     "noEmitHelpers": true,

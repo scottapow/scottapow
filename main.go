@@ -12,28 +12,28 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/scottapow/scottapow/services"
+	router "github.com/scottapow/scottapow/api"
+	"github.com/scottapow/scottapow/api/auth"
 	"golang.org/x/oauth2"
 )
 
 const (
-	layoutsDir   = "templates/layouts"
-	templatesDir = "templates"
+	layoutsDir   = "web/templates/layouts"
+	templatesDir = "web/templates"
 	extension    = "/*.html"
 	cookieName   = "authstate"
 )
 
 var staticId = uuid.New()
 
-//go:embed templates/* templates/layouts/*
+//go:embed web/templates/* web/templates/layouts/*
 var files embed.FS
 
 func main() {
 	godotenv.Load()
 
-	auth, err := NewAuthProvider()
+	a, err := auth.NewAuthProvider()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,14 +56,12 @@ func main() {
 		templates[tmpl.Name()] = pt
 	}
 
-	r := mux.NewRouter()
-
-	// Include all static files
-	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
-	r.PathPrefix("/static/").Handler(s)
+	s := router.New()
+	staticFilesHandler := http.StripPrefix("/web/static/", http.FileServer(http.Dir("./web/static/")))
+	s.Router.Handle("/web/static/", staticFilesHandler)
 
 	// HTML Handlers
-	r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		oauthState, _ := r.Cookie(cookieName)
 		if r.FormValue("state") != oauthState.Value {
 			// TODO: notify user and clear state cookie
@@ -73,21 +71,21 @@ func main() {
 		}
 
 		// get token and check validity
-		oat, err := auth.GetToken(r.FormValue("code"))
+		oat, err := a.GetToken(r.FormValue("code"))
 		if err != nil || !oat.Valid() {
 			fmt.Println(err)
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
 
-		session, err := auth.Store.Get(r, AuthCookieName)
+		session, err := a.Store.Get(r, auth.AuthCookieName)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, http.ErrNoCookie.Error(), 1)
 		}
 
 		// get user or create
-		u, err := auth.GetUserDataFromGoogle(oat)
+		u, err := a.GetUserDataFromGoogle(oat)
 		if err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -122,11 +120,11 @@ func main() {
 		fmt.Printf("jwt %+v\n", signedJWT)
 		http.Redirect(w, r, "/user", http.StatusTemporaryRedirect)
 	})
-	r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
+	s.Router.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
 		// TODO: convert this to an API action so a user can logout anywhere
 		w.Header().Set("Location", "/")
 		http.SetCookie(w, &http.Cookie{
-			Name:     AuthCookieName,
+			Name:     auth.AuthCookieName,
 			MaxAge:   -1,
 			Secure:   true,
 			SameSite: http.SameSiteStrictMode,
@@ -135,10 +133,10 @@ func main() {
 		})
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
-	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
-		state, _ := RandString(32)
+	s.Router.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		state, _ := auth.RandString(32)
 		fmt.Println("state", state)
-		url := auth.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
+		url := a.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
 		cookie := http.Cookie{
 			Name:    cookieName,
 			Value:   state,
@@ -147,7 +145,7 @@ func main() {
 		http.SetCookie(w, &cookie)
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	})
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	s.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, ok := templates["home.html"]
 		if !ok {
 			log.Printf("template home.html not found")
@@ -159,8 +157,8 @@ func main() {
 			log.Println(err)
 		}
 	})
-	r.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
-		session, err := auth.Store.Get(r, AuthCookieName)
+	s.Router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
+		session, err := a.Store.Get(r, auth.AuthCookieName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			// http.Redirect(w, r, "/auth/google", http.StatusTemporaryRedirect)
@@ -201,9 +199,5 @@ func main() {
 		}
 	})
 
-	// API Handlers
-	r.HandleFunc("/signup", services.HandleSignup).Methods(http.MethodPost)
-
-	fmt.Println("Listening on :3000")
-	http.ListenAndServe(":3000", r)
+	s.Run(":3000")
 }
