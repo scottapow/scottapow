@@ -66,6 +66,7 @@ func main() {
 	r.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		oauthState, _ := r.Cookie(cookieName)
 		if r.FormValue("state") != oauthState.Value {
+			// TODO: notify user and clear state cookie
 			fmt.Println("invalid oauth google state")
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
@@ -121,10 +122,19 @@ func main() {
 		fmt.Printf("jwt %+v\n", signedJWT)
 		http.Redirect(w, r, "/user", http.StatusTemporaryRedirect)
 	})
-	// r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Header().Set("Location", "/")
-	// 	w.WriteHeader(http.StatusTemporaryRedirect)
-	// })
+	r.HandleFunc("/logout/{provider}", func(w http.ResponseWriter, r *http.Request) {
+		// TODO: convert this to an API action so a user can logout anywhere
+		w.Header().Set("Location", "/")
+		http.SetCookie(w, &http.Cookie{
+			Name:     AuthCookieName,
+			MaxAge:   -1,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+			Path:     "/",
+			HttpOnly: true,
+		})
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	})
 	r.HandleFunc("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
 		state, _ := RandString(32)
 		fmt.Println("state", state)
@@ -190,20 +200,6 @@ func main() {
 			fmt.Println(err)
 		}
 	})
-	// r.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
-	// 	err := provider.ValidateSession(r)
-	// 	if err != nil {
-	// 		http.Redirect(w, r, "/auth/"+provider.OIDC.Name(), http.StatusTemporaryRedirect)
-	// 	}
-
-	// 	t, ok := templates["protected.html"]
-	// 	if !ok {
-	// 		log.Printf("template protected.html not found")
-	// 	}
-	// 	data := make(map[string]interface{})
-	// 	data["BuildId"] = staticId
-	// 	t.Execute(w, data)
-	// })
 
 	// API Handlers
 	r.HandleFunc("/signup", services.HandleSignup).Methods(http.MethodPost)
