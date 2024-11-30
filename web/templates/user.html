@@ -1,14 +1,10 @@
-{{template "layout" .}}
-
-{{define "title"}}Scott Powell - Login Successful{{end}}
-{{define "description"}}Portfolio Site for Scott Powell{{end}}
-{{define "image"}}{{end}}
-
-{{define "content"}}
+{{template "layout" .}} {{define "title"}}Scott Powell - Login Successful{{end}}
+{{define "description"}}Portfolio Site for Scott Powell{{end}} {{define
+"image"}}{{end}} {{define "content"}}
 <h1>Welcome</h1>
 <p><a href="/logout/google">logout</a></p>
 <p>Name: {{.User.Fullname}} [{{.User.Surname}}, {{.User.Firstname}}]</p>
 <p>Email: {{.User.Email}}</p>
-<p>AvatarURL: {{.User.PictureURL}} <img src="{{.User.PictureURL}}"></p>
+<p><img src="{{.User.PictureURL}}" /></p>
 <p>UserID: {{.User.ID}}</p>
 {{end}}
