@@ -12,7 +12,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/sessions"
-	"github.com/scottapow/scottapow/web"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	db "github.com/scottapow/scottapow/data"
+	web "github.com/scottapow/scottapow/web"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -32,6 +36,7 @@ type AuthProvider struct {
 	Config   *oauth2.Config
 	Store    *sessions.CookieStore
 	WebStore *web.Web
+	DB       *pgxpool.Pool
 }
 
 type Claims struct {
@@ -44,7 +49,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-type User struct {
+type GoogleUser struct {
 	Email      string `json:"email"`
 	Surname    string `json:"family_name"`
 	Firstname  string `json:"given_name"`
@@ -55,7 +60,7 @@ type User struct {
 
 var store *sessions.CookieStore
 
-func NewAuthProvider(web *web.Web) (*AuthProvider, error) {
+func NewAuthProvider(web *web.Web, conn *pgxpool.Pool) (*AuthProvider, error) {
 	store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
 	store.MaxAge(86400 * 1) // 1 day
 	store.Options.Secure = true
@@ -75,6 +80,7 @@ func NewAuthProvider(web *web.Web) (*AuthProvider, error) {
 		Config:   config,
 		Store:    store,
 		WebStore: web,
+		DB:       conn,
 	}, nil
 }
 
@@ -85,7 +91,7 @@ func (p *AuthProvider) GetToken(code string) (*oauth2.Token, error) {
 	}
 	return token, nil
 }
-func (p *AuthProvider) GetUserDataFromGoogle(token *oauth2.Token) (*User, error) {
+func (p *AuthProvider) GetUserDataFromGoogle(token *oauth2.Token) (*GoogleUser, error) {
 	client := p.Config.Client(context.Background(), token)
 	r, err := client.Get(oauthGoogleUrlAPI)
 	defer r.Body.Close()
@@ -96,14 +102,14 @@ func (p *AuthProvider) GetUserDataFromGoogle(token *oauth2.Token) (*User, error)
 
 	return makeUser(r)
 }
-func makeUser(r *http.Response) (*User, error) {
+func makeUser(r *http.Response) (*GoogleUser, error) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Println(string(data))
-	var u User
+	var u GoogleUser
 	err = json.Unmarshal(data, &u)
 
 	if err != nil {
@@ -152,26 +158,35 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	// get user or create
-	u, err := p.GetUserDataFromGoogle(oat)
+	googleUser, err := p.GetUserDataFromGoogle(oat)
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
+	// get or create user
+	user, err := getUser(r.Context(), p.DB, googleUser)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	claims := &jwt.MapClaims{
-		"Email":      u.Email,
-		"Firstname":  u.Firstname,
-		"Surname":    u.Surname,
-		"ID":         u.ID,
-		"Fullname":   u.Fullname,
-		"PictureURL": u.PictureURL,
+		"Email":      googleUser.Email,
+		"Firstname":  googleUser.Firstname,
+		"Surname":    googleUser.Surname,
+		"Id":         googleUser.ID,
+		"Fullname":   googleUser.Fullname,
+		"PictureURL": googleUser.PictureURL,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedJWT, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	session.Values["claims"] = signedJWT
@@ -184,7 +199,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	p.WebStore.User(w, *claims)
+	p.WebStore.WriteUserTemplate(w, &user)
 	return
 	// This doesn't work, I suppose because the request bounced to another origin
 	// http.Redirect(w, r, "/user", http.StatusFound)
@@ -243,4 +258,77 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (jwt.MapClaims, error) {
 	} else {
 		return nil, errors.New("Invalid claims format")
 	}
+}
+
+// query for the user by match with oauth id and email
+// if it doesn't exist create an entry and return
+func getUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (*db.UserModel, error) {
+	tx, err := conn.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var u = &db.UserModel{}
+
+	// Query for the user
+	err = tx.QueryRow(ctx, `
+		SELECT id, email, created_at, updated_at, login_at, firstname, surname, avatar_url, oauth_provider_id FROM users WHERE oauth_provider_id=$1 AND email=$2
+	`, gu.ID, gu.Email).Scan(&u.Id, &u.Email, &u.Created_at, &u.Updated_at, &u.Login_at, &u.Firstname, &u.Surname, &u.AvatarURL, &u.Oauth_provider_id)
+
+	if err != nil {
+		// not returning here because it could be that the user doesn't exist yet
+		// TOOO: handle a case where the user exists but there was another error in the query
+		fmt.Println(err)
+	}
+
+	if u.Id.Valid && u.Login_at.Valid {
+		err = tx.Commit(ctx)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(u)
+		return u, nil
+	}
+
+	// new user
+	pass, err := GenerateSecurePassword()
+	if err != nil {
+		return nil, err
+	}
+	hashedPass, err := bcrypt.GenerateFromPassword(pass, bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.QueryRow(ctx, `
+		INSERT INTO users (
+			id,
+			password,
+			email,
+			firstname,
+			surname,
+			avatar_url,
+			oauth_provider,
+			oauth_provider_id
+		)
+		VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, email, created_at, updated_at, login_at, firstname, surname, avatar_url, oauth_provider_id;
+	`, hashedPass, gu.Email, gu.Firstname, gu.Surname, gu.PictureURL, "google", gu.ID,
+	).Scan(&u.Id, &u.Email, &u.Created_at, &u.Updated_at, &u.Login_at, &u.Firstname, &u.Surname, &u.AvatarURL, &u.Oauth_provider_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !u.Id.Valid {
+		tx.Rollback(ctx)
+		return nil, fmt.Errorf("Unknown error creating user")
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(u)
+	return u, nil
 }

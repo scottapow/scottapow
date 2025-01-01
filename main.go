@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	router "github.com/scottapow/scottapow/api"
 	"github.com/scottapow/scottapow/api/auth"
+	db "github.com/scottapow/scottapow/data"
 	"github.com/scottapow/scottapow/web"
 )
 
@@ -20,12 +21,22 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	store, err := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = store.Setup()
+	if err != nil {
+		log.Fatal("Failed to setup db")
+	}
+
 	web, err := web.NewWeb()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	a, err := auth.NewAuthProvider(web)
+	a, err := auth.NewAuthProvider(web, store.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +56,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		web.User(w, claims)
+		web.WriteUserTemplate(w, claims)
 	})
 
 	s.Router.HandleFunc("/auth/{provider}/callback", a.HandleLoginCallback)

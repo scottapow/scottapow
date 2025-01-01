@@ -2,45 +2,40 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Store struct {
-	db *sql.DB
+	DB *pgxpool.Pool
 }
 
 func Connect() (*Store, error) {
 	connStr := os.Getenv("DB_CONN_STR")
-	db, err := sql.Open("postgres", connStr)
+	bkg := context.Background()
+	db, err := pgxpool.New(bkg, connStr)
 
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
+	// defer db.Close()
 
-	return &Store{db: db}, nil
+	return &Store{DB: db}, nil
 }
 
 func (s *Store) Setup() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
-
-	if err != nil {
-		cancel()
-		return err
-	}
-
-	_, err = tx.Query(`
+	_, err := s.DB.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS users(
-			id                  SERIAL PRIMARY KEY,
-			username            VARCHAR(255) UNIQUE NOT NULL,
+			id                  UUID PRIMARY KEY,
 			email               VARCHAR(255) UNIQUE NOT NULL,
 			password            VARCHAR(255),
 			created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at          TIMESTAMP,
+			login_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			firstname           VARCHAR(255),
+			surname             VARCHAR(255),
+			avatar_url          VARCHAR(255),
 			oauth_provider      VARCHAR(255),
 			oauth_provider_id   VARCHAR(255),
 			oauth_access_token  VARCHAR(255),
@@ -50,9 +45,8 @@ func (s *Store) Setup() error {
 	`)
 
 	if err != nil {
-		cancel()
 		return err
 	}
-	cancel()
+
 	return nil
 }

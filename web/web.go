@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -63,14 +62,14 @@ func (render *Web) Home(w http.ResponseWriter) {
 	}
 }
 
-func (render *Web) User(w http.ResponseWriter, claims jwt.MapClaims) {
+func (render *Web) WriteUserTemplate(w http.ResponseWriter, u any) {
 	t, ok := render.Templates["user.html"]
 	if !ok {
 		log.Printf("template home.html not found")
 	}
 	data := make(map[string]interface{})
 	data["BuildId"] = StaticId
-	data["User"] = claims
+	data["User"] = u
 
 	if err := t.Execute(w, data); err != nil {
 		log.Println(err)

@@ -24,12 +24,12 @@ func (s *Server) Run(port string) error {
 		Handler: s.Router,
 	}
 
+	fmt.Printf("Listening on %s", port)
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err.Error())
 		return err
 	}
-	fmt.Printf("Listening on %s", port)
 
 	return nil
 }
