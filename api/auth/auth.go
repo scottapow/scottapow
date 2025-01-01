@@ -166,7 +166,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	// get or create user
-	user, err := getUser(r.Context(), p.DB, googleUser)
+	user, err := readOrCreateUser(r.Context(), p.DB, googleUser)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -174,12 +174,13 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	claims := &jwt.MapClaims{
-		"Email":      googleUser.Email,
-		"Firstname":  googleUser.Firstname,
-		"Surname":    googleUser.Surname,
-		"Id":         googleUser.ID,
-		"Fullname":   googleUser.Fullname,
-		"PictureURL": googleUser.PictureURL,
+		"Email":      user.Email.String,
+		"Firstname":  user.Firstname.String,
+		"Surname":    user.Surname.String,
+		"ID":         user.Id.String(),
+		"OID":        user.Oauth_provider_id.String,
+		"CreatedAt":  user.Created_at.Time.Format(time.DateTime),
+		"PictureURL": user.AvatarURL.String,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedJWT, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -199,7 +200,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	p.WebStore.WriteUserTemplate(w, &user)
+	p.WebStore.WriteUserTemplate(w, &claims)
 	return
 	// This doesn't work, I suppose because the request bounced to another origin
 	// http.Redirect(w, r, "/user", http.StatusFound)
@@ -262,7 +263,7 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (jwt.MapClaims, error) {
 
 // query for the user by match with oauth id and email
 // if it doesn't exist create an entry and return
-func getUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (*db.UserModel, error) {
+func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (*db.UserModel, error) {
 	tx, err := conn.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, err

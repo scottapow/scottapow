@@ -53,7 +53,9 @@ func main() {
 	s.Router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.GetUserClaims(r)
 		if err != nil {
-			log.Fatal(err)
+			// w.Header().Set("WWW-Authenticate", "Basic realm=\"Dev"")
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
 		}
 
 		web.WriteUserTemplate(w, claims)
