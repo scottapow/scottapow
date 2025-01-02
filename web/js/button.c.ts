@@ -38,34 +38,24 @@ const styles = cva({
 type SizeOptions = (typeof styles)['variantMap']['size'][0]
 type ColorOptions = (typeof styles)['variantMap']['color'][0]
 
-class CButton extends HTMLButtonElement {
+class CButton extends HTMLElement {
   constructor() {
     super();
-
-    const size = (this.getAttribute('size') ?? 'md') as SizeOptions;
-    const color = (this.getAttribute('color') ?? 'primary') as ColorOptions;
-    this.classList.add(...styles({ size, color }).split(' '))
   }
 
   static observedAttributes = ["size", "color"];
 
   connectedCallback() {
-    console.log("Custom element added to page.");
-  }
-
-  disconnectedCallback() {
-    console.log("Custom element removed from page.");
-  }
-
-  adoptedCallback() {
-    console.log("Custom element moved to new page.");
-  }
-
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    console.log(`Attribute ${name} has changed.`, { oldValue, newValue });
+    let btn = document.createElement('button');
+    let size = (this.getAttribute('size') ?? 'md') as SizeOptions;
+    let color = (this.getAttribute('color') ?? 'primary') as ColorOptions;
+    btn.classList.add(...styles({ size, color }).split(' '));
+    btn.replaceChildren(...this.children);
+    btn.append(this.innerHTML);
+    this.replaceChildren(btn);
   }
 }
 
 export default function registerCButton() {
-  customElements.define("wc-button", CButton, { extends: "button" });
+  customElements.define("wc-button", CButton);
 };

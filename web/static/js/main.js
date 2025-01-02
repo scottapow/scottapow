@@ -374,16 +374,19 @@
       color: "primary"
     }
   });
-  var CButton = class extends HTMLButtonElement {
+  var CButton = class extends HTMLElement {
     constructor() {
       super();
-      const size = this.getAttribute("size") ?? "md";
-      const color = this.getAttribute("color") ?? "primary";
-      this.classList.add(...styles({ size, color }).split(" "));
     }
     static observedAttributes = ["size", "color"];
     connectedCallback() {
-      console.log("Custom element added to page.");
+      let btn = document.createElement("button");
+      let size = this.getAttribute("size") ?? "md";
+      let color = this.getAttribute("color") ?? "primary";
+      btn.classList.add(...styles({ size, color }).split(" "));
+      btn.replaceChildren(...this.children);
+      btn.append(this.innerHTML);
+      this.replaceChildren(btn);
     }
     disconnectedCallback() {
       console.log("Custom element removed from page.");
@@ -396,7 +399,7 @@
     }
   };
   function registerCButton() {
-    customElements.define("wc-button", CButton, { extends: "button" });
+    customElements.define("wc-button", CButton);
   }
 
   // js/main.ts
