@@ -15,7 +15,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db "github.com/scottapow/scottapow/data"
-	web "github.com/scottapow/scottapow/web"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -33,20 +32,9 @@ var (
 )
 
 type AuthProvider struct {
-	Config   *oauth2.Config
-	Store    *sessions.CookieStore
-	WebStore *web.Web
-	DB       *pgxpool.Pool
-}
-
-type Claims struct {
-	Email      string
-	Surname    string
-	Firstname  string
-	ID         string
-	Fullname   string
-	PictureURL string
-	jwt.RegisteredClaims
+	Config *oauth2.Config
+	Store  *sessions.CookieStore
+	DB     *pgxpool.Pool
 }
 
 type GoogleUser struct {
@@ -60,7 +48,7 @@ type GoogleUser struct {
 
 var store *sessions.CookieStore
 
-func NewAuthProvider(web *web.Web, conn *pgxpool.Pool) (*AuthProvider, error) {
+func NewAuthProvider(conn *pgxpool.Pool) (*AuthProvider, error) {
 	store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
 	store.MaxAge(86400 * 1) // 1 day
 	store.Options.Secure = true
@@ -77,10 +65,9 @@ func NewAuthProvider(web *web.Web, conn *pgxpool.Pool) (*AuthProvider, error) {
 	}
 
 	return &AuthProvider{
-		Config:   config,
-		Store:    store,
-		WebStore: web,
-		DB:       conn,
+		Config: config,
+		Store:  store,
+		DB:     conn,
 	}, nil
 }
 
@@ -133,13 +120,13 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) {
+func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error) {
 	oauthState, _ := r.Cookie(stateCookieName)
 	if r.FormValue("state") != oauthState.Value {
 		// TODO: notify user and clear state cookie
 		fmt.Println("invalid oauth google state")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
+		return nil, errors.New("Invalid State")
 	}
 
 	// get token and check validity
@@ -147,7 +134,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	if err != nil || !oat.Valid() {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
+		return nil, err
 	}
 	fmt.Printf("\nexpiry %+v\n", oat.Expiry.Unix())
 
@@ -162,7 +149,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
+		return nil, err
 	}
 
 	// get or create user
@@ -170,7 +157,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	claims := &jwt.MapClaims{
@@ -187,7 +174,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	session.Values["claims"] = signedJWT
@@ -197,11 +184,10 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	p.WebStore.WriteUserTemplate(w, &claims)
-	return
+	return claims, nil
 	// This doesn't work, I suppose because the request bounced to another origin
 	// http.Redirect(w, r, "/user", http.StatusFound)
 }

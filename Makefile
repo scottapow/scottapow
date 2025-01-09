@@ -5,3 +5,6 @@ deploy:
 
 run:
 	go run *.go
+
+buildweb:
+	cd web && npm run build:js && npm run build:css

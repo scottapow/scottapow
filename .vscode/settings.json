@@ -2,9 +2,13 @@
   "editor.detectIndentation": false,
   "html.suggest.html5": true,
   "emmet.includeLanguages": {
-    "typescript": "html"
+    "typescript": "html",
+    "templ": "html"
   },
   "emmet.syntaxProfiles": {
     "typescript": ["jsx", "typescript", "html"]
+  },
+  "[templ]": {
+    "editor.defaultFormatter": "a-h.templ"
   }
 }

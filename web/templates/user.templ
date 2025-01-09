@@ -1,0 +1,19 @@
+package templates
+
+import "fmt"
+
+templ UserPage(buildId string, user Claims) {
+	@Layout(buildId, HeadData{
+		Title:       "User Profile",
+		Description: fmt.Sprintf("User Profile - %s %s", user.Firstname, user.Surname),
+		Image:       user.PictureURL,
+	}) {
+		<h1>Welcome</h1>
+		<p><a href="/logout/google">logout</a></p>
+		<p>Name: { user.Firstname } { user.Surname }</p>
+		<p>Email: { user.Email }</p>
+		<p>Created At: { user.CreatedAt }</p>
+		<p><img src={ user.PictureURL }/></p>
+		<p>UserID: { user.ID }</p>
+	}
+}

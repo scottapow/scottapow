@@ -11,10 +11,6 @@ import (
 	"github.com/scottapow/scottapow/web"
 )
 
-const (
-	cookieName = "authstate"
-)
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -31,25 +27,20 @@ func main() {
 		log.Fatal("Failed to setup db")
 	}
 
-	web, err := web.NewWeb()
-	if err != nil {
-		log.Fatal(err)
-	}
+	web := web.NewWeb()
 
-	a, err := auth.NewAuthProvider(web, store.DB)
+	a, err := auth.NewAuthProvider(store.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s := router.New()
-	staticFilesHandler := http.StripPrefix("/web/static/", http.FileServer(http.Dir("./web/static/")))
-	s.Router.Handle("/web/static/", staticFilesHandler)
+	// staticFilesHandler := http.StripPrefix("/web/static/", http.FileServer(http.Dir("./web/static/")))
+	// s.Router.Handle("/web/static/", staticFilesHandler)
 
 	// HTML Handlers
 
-	s.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		web.Home(w)
-	})
+	s.Router.HandleFunc("/", web.Home)
 	s.Router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.GetUserClaims(r)
 		if err != nil {
@@ -58,10 +49,16 @@ func main() {
 			return
 		}
 
-		web.WriteUserTemplate(w, claims)
+		web.WriteUserTemplate(w, r, claims)
 	})
 
-	s.Router.HandleFunc("/auth/{provider}/callback", a.HandleLoginCallback)
+	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+		claims, err := a.HandleLoginCallback(w, r)
+		// error responses are handled in HandleLoginCallback
+		if err != nil {
+			web.WriteUserTemplate(w, r, claims)
+		}
+	})
 	s.Router.HandleFunc("/logout/{provider}", a.HandleLogout)
 	s.Router.HandleFunc("/auth/{provider}", a.HandleLogin)
 
