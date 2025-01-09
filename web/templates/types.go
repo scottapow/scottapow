@@ -1,7 +1,5 @@
 package templates
 
-import "github.com/golang-jwt/jwt/v5"
-
 type Claims struct {
 	Email      string
 	Surname    string
@@ -10,5 +8,4 @@ type Claims struct {
 	Fullname   string
 	PictureURL string
 	CreatedAt  string
-	jwt.RegisteredClaims
 }

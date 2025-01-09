@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db "github.com/scottapow/scottapow/data"
+	"github.com/scottapow/scottapow/web/templates"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -120,13 +121,13 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (*jwt.MapClaims, error) {
+func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (templates.Claims, error) {
 	oauthState, _ := r.Cookie(stateCookieName)
 	if r.FormValue("state") != oauthState.Value {
 		// TODO: notify user and clear state cookie
 		fmt.Println("invalid oauth google state")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return nil, errors.New("Invalid State")
+		return templates.Claims{}, errors.New("Invalid State")
 	}
 
 	// get token and check validity
@@ -134,7 +135,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	if err != nil || !oat.Valid() {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return nil, err
+		return templates.Claims{}, err
 	}
 	fmt.Printf("\nexpiry %+v\n", oat.Expiry.Unix())
 
@@ -149,7 +150,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return nil, err
+		return templates.Claims{}, err
 	}
 
 	// get or create user
@@ -157,7 +158,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return nil, err
+		return templates.Claims{}, err
 	}
 
 	claims := &jwt.MapClaims{
@@ -174,7 +175,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return nil, err
+		return templates.Claims{}, err
 	}
 
 	session.Values["claims"] = signedJWT
@@ -184,10 +185,18 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return nil, err
+		return templates.Claims{}, err
 	}
 
-	return claims, nil
+	return templates.Claims{
+		Email:      user.Email.String,
+		Firstname:  user.Firstname.String,
+		Surname:    user.Surname.String,
+		ID:         user.Id.String(),
+		Fullname:   user.Firstname.String + " " + user.Surname.String,
+		PictureURL: user.AvatarURL.String,
+		CreatedAt:  user.Created_at.Time.Format(time.DateTime),
+	}, nil
 	// This doesn't work, I suppose because the request bounced to another origin
 	// http.Redirect(w, r, "/user", http.StatusFound)
 }
@@ -207,27 +216,28 @@ func (p *AuthProvider) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (p *AuthProvider) GetUserClaims(r *http.Request) (jwt.MapClaims, error) {
+func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) {
 	session, err := p.Store.Get(r, AuthCookieName)
+	var templateClaims = templates.Claims{}
 	if err != nil {
-		return nil, err
+		return templateClaims, err
 	}
 
 	if session.IsNew {
-		return nil, errors.New("User Session no available")
+		return templateClaims, errors.New("User Session not available")
 	}
 	fmt.Printf("\n\nValues %+v\n\n", session)
 
 	expiry, ok := session.Values["expiry"]
 	if !ok || expiry == nil {
-		return nil, errors.New("Failed to parse session")
+		return templateClaims, errors.New("Failed to parse session")
 	}
 	expiryEpoc := expiry.(int64)
 	claims := session.Values["claims"].(string)
 	accessToken := session.Values["gat"].(string)
 
 	if time.Now().Unix() > expiryEpoc || &accessToken == nil {
-		return nil, errors.New("Access Expired")
+		return templateClaims, errors.New("Access Expired")
 	}
 
 	token, err := jwt.Parse(claims, func(tok *jwt.Token) (interface{}, error) {
@@ -237,13 +247,20 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (jwt.MapClaims, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil {
-		return nil, err
+		return templateClaims, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		return claims, nil
+		templateClaims.Email = claims["Email"].(string)
+		templateClaims.Firstname = claims["Firstname"].(string)
+		templateClaims.Surname = claims["Surname"].(string)
+		templateClaims.ID = claims["ID"].(string)
+		templateClaims.Fullname = claims["Firstname"].(string) + " " + claims["Surname"].(string)
+		templateClaims.PictureURL = claims["PictureURL"].(string)
+		templateClaims.CreatedAt = claims["CreatedAt"].(string)
+		return templateClaims, nil
 	} else {
-		return nil, errors.New("Invalid claims format")
+		return templateClaims, errors.New("Invalid claims format")
 	}
 }
 

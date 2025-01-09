@@ -55,7 +55,7 @@ func main() {
 	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback
-		if err != nil {
+		if err == nil {
 			web.WriteUserTemplate(w, r, claims)
 		}
 	})

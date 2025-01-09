@@ -1,7 +1,6 @@
 package web
 
 import (
-	"html/template"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -11,7 +10,6 @@ import (
 
 var StaticId = uuid.New().String()
 
-type TemplateMap = map[string]*template.Template
 type Web struct {
 }
 
