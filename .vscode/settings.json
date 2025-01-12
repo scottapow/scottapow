@@ -10,5 +10,11 @@
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "tailwindCSS.includeLanguages" : { 
+    "templ": "html" 
   }
 }

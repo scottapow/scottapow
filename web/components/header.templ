@@ -1,0 +1,22 @@
+package components
+
+var navItems = []struct {
+	Name string
+	URL  string
+}{
+	{"Home", "/"},
+	{"User", "/user"},
+	{"Login", "/auth/google"},
+}
+
+templ Header() {
+	<header>
+		<nav>
+			<ul class="flex list-none gap-4">
+				for _, item := range navItems {
+					<li><a href={ templ.SafeURL(item.URL) }>{ item.Name }</a></li>
+				}
+			</ul>
+		</nav>
+	</header>
+}

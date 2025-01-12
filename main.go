@@ -35,8 +35,8 @@ func main() {
 	}
 
 	s := router.New()
-	// staticFilesHandler := http.StripPrefix("/web/static/", http.FileServer(http.Dir("./web/static/")))
-	// s.Router.Handle("/web/static/", staticFilesHandler)
+	staticFilesHandler := http.StripPrefix("/web/public/", http.FileServer(http.Dir("./web/public/")))
+	s.Router.Handle("/web/public/", staticFilesHandler)
 
 	// HTML Handlers
 

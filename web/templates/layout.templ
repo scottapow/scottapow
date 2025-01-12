@@ -1,7 +1,7 @@
 
 package templates
 
-import "fmt"
+import "github.com/scottapow/scottapow/web/components"
 
 type HeadData struct {
 	Title       string
@@ -27,16 +27,10 @@ templ Layout(buildId string, head HeadData) {
 			<meta property="og:title" content={ head.Title }/>
 			<meta property="og:description" content={ head.Description }/>
 			<meta property="og:image" content={ head.Image }/>
-			<link href={ fmt.Sprintf("/web/static/css/main.css?v=%d", buildId) } rel="stylesheet"/>
+			<link href={ "/web/public/output.css?v=" + buildId } rel="stylesheet"/>
 		</head>
 		<body>
-			<nav>
-				<ul>
-					<li><a href="/">Home</a></li>
-					<li><a href="/user">User</a></li>
-					<li><a href="/auth/google">Login</a></li>
-				</ul>
-			</nav>
+			@components.Header()
 			{ children... }
 		</body>
 	</html>
