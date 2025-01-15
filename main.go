@@ -40,7 +40,11 @@ func main() {
 
 	// HTML Handlers
 
-	s.Router.HandleFunc("/", web.Home)
+	s.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// error ignored because auth is not required
+		claims, _ := a.GetUserClaims(r)
+		web.Home(w, r, claims)
+	})
 	s.Router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.GetUserClaims(r)
 		if err != nil {

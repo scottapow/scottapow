@@ -10,7 +10,19 @@ type HeadData struct {
 	BuildId     string
 }
 
-templ Layout(buildId string, head HeadData) {
+func getNavItems(user Claims) []components.NavItem {
+	var navItems = []components.NavItem{
+		{Name: "Calories", URL: "/calories"},
+	}
+	if user.ID != "" {
+		return append(navItems, components.NavItem{Name: "User", URL: "/user"})
+	} else {
+		return append(navItems, components.NavItem{Name: "Login", URL: "/auth/google"})
+	}
+}
+
+templ Layout(buildId string, head HeadData, user Claims) {
+	{{ navItems := getNavItems(user) }}
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -18,19 +30,13 @@ templ Layout(buildId string, head HeadData) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ head.Title }</title>
 			<meta name="description" content={ head.Description }/>
-			<!-- icon -->
-			<!-- <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="48x48" /> -->
-			<!-- font -->
-			<!-- preloads -->
-			<!-- async script includes -->
-			<!-- OG/Twitter -->
 			<meta property="og:title" content={ head.Title }/>
 			<meta property="og:description" content={ head.Description }/>
 			<meta property="og:image" content={ head.Image }/>
 			<link href={ "/web/public/output.css?v=" + buildId } rel="stylesheet"/>
 		</head>
 		<body>
-			@components.Header()
+			@components.Header(navItems)
 			{ children... }
 		</body>
 	</html>

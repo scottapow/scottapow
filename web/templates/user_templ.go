@@ -131,7 +131,7 @@ func UserPage(buildId string, user Claims) templ.Component {
 			Title:       "User Profile",
 			Description: fmt.Sprintf("User Profile - %s %s", user.Firstname, user.Surname),
 			Image:       user.PictureURL,
-		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		}, user).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

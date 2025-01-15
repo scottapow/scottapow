@@ -1,11 +1,11 @@
 package templates
 
-templ HomePage(buildId string) {
+templ HomePage(buildId string, user Claims) {
 	@Layout(buildId, HeadData{
 		Title:       "Home",
 		Description: "Home page",
 		Image:       "",
-	}) {
+	}, user) {
 		<h1>Home</h1>
 	}
 }

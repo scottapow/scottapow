@@ -17,8 +17,8 @@ func NewWeb() *Web {
 	return &Web{}
 }
 
-func (render *Web) Home(w http.ResponseWriter, r *http.Request) {
-	templ.Handler(templates.HomePage(StaticId)).ServeHTTP(w, r)
+func (render *Web) Home(w http.ResponseWriter, r *http.Request, u templates.Claims) {
+	templ.Handler(templates.HomePage(StaticId, u)).ServeHTTP(w, r)
 }
 
 func (render *Web) WriteUserTemplate(w http.ResponseWriter, r *http.Request, u templates.Claims) {

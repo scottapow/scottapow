@@ -1,0 +1,6 @@
+<header class=\"p-4 bg-white dark:bg-slate-900\"><nav><ul class=\"flex list-none gap-4 justify-end\"><li class=\"mr-auto\"><a class=\"text-slate-9bg-slate-900 dark:text-white hover:underline\" href=\"
+\">Home</a></li>
+<li><a class=\"text-slate-9bg-slate-900 dark:text-white hover:underline\" href=\"
+\">
+</a></li>
+</ul></nav></header>
