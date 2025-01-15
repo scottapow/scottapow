@@ -24,3 +24,7 @@ func (render *Web) Home(w http.ResponseWriter, r *http.Request, u templates.Clai
 func (render *Web) WriteUserTemplate(w http.ResponseWriter, r *http.Request, u templates.Claims) {
 	templ.Handler(templates.UserPage(StaticId, u)).ServeHTTP(w, r)
 }
+
+func (render *Web) Calories(w http.ResponseWriter, r *http.Request, u templates.Claims) {
+	templ.Handler(templates.CaloriesPage(StaticId, u)).ServeHTTP(w, r)
+}

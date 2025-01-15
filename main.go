@@ -55,7 +55,10 @@ func main() {
 
 		web.WriteUserTemplate(w, r, claims)
 	})
-
+	s.Router.HandleFunc("/calories", func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := a.GetUserClaims(r)
+		web.Calories(w, r, claims)
+	})
 	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback

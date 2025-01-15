@@ -25,7 +25,14 @@ func Connect() (*Store, error) {
 }
 
 func (s *Store) Setup() error {
-	_, err := s.DB.Exec(context.Background(), `
+	bkg := context.Background()
+
+	// types
+	_, err := s.DB.Exec(bkg, `
+		CREATE TYPE permission AS ENUM ('calories_read', 'calories_write');
+	`)
+
+	_, err = s.DB.Exec(bkg, `
 		CREATE TABLE IF NOT EXISTS users(
 			id                  UUID PRIMARY KEY,
 			email               VARCHAR(255) UNIQUE NOT NULL,
@@ -41,7 +48,25 @@ func (s *Store) Setup() error {
 			oauth_access_token  VARCHAR(255),
 			oauth_refresh_token VARCHAR(255),
 			oauth_expires_at    TIMESTAMP
-		)
+		);
+		CREATE TABLE IF NOT EXISTS permissions(
+			id          UUID PRIMARY KEY,
+            user_id     UUID REFERENCES users(id),
+            permission  permission NOT NULL,
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE TABLE IF NOT EXISTS calories(
+			id          UUID PRIMARY KEY,
+			user_id     UUID REFERENCES users(id),
+			created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at  TIMESTAMP,
+		);
+		CREATE TABLE IF NOT EXISTS calorie_entries(
+			id           UUID PRIMARY KEY,
+			calories_id  UUID REFERENCES calories(id),
+			amount       INT,
+			consumed_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		);
 	`)
 
 	if err != nil {

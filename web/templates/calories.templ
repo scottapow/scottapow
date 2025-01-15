@@ -1,0 +1,14 @@
+package templates
+
+templ CaloriesPage(buildId string, user Claims) {
+	@Layout(buildId, HeadData{
+		Title:       "Calories",
+		Description: "Calorie Counter",
+		Image:       "",
+	}, user) {
+		<h1>Calories</h1>
+		<p>Calories consumed today: 0</p>
+		<p>Calories burned today: 0</p>
+		<p>Net calories today: 0</p>
+	}
+}
