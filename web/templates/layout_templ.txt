@@ -5,4 +5,5 @@
 \"><meta property=\"og:image\" content=\"
 \"><link href=\"
 \" rel=\"stylesheet\"></head><body>
-</body></html>
+<main class=\"p-4\">
+</main></body></html>

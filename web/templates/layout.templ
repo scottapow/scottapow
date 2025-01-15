@@ -15,7 +15,11 @@ func getNavItems(user Claims) []components.NavItem {
 		{Name: "Calories", URL: "/calories"},
 	}
 	if user.ID != "" {
-		return append(navItems, components.NavItem{Name: "User", URL: "/user"})
+		return append(
+			navItems,
+			components.NavItem{Name: "User", URL: "/user"},
+			components.NavItem{Name: "Logout", URL: "/logout/google"},
+		)
 	} else {
 		return append(navItems, components.NavItem{Name: "Login", URL: "/auth/google"})
 	}
@@ -37,7 +41,9 @@ templ Layout(buildId string, head HeadData, user Claims) {
 		</head>
 		<body>
 			@components.Header(navItems)
-			{ children... }
+			<main class="p-4">
+				{ children... }
+			</main>
 		</body>
 	</html>
 }
