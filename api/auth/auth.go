@@ -161,14 +161,17 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 		return templates.Claims{}, err
 	}
 
+	permissions, err := readPermissions(r.Context(), p.DB, user.Id.String())
+
 	claims := &jwt.MapClaims{
-		"Email":      user.Email.String,
-		"Firstname":  user.Firstname.String,
-		"Surname":    user.Surname.String,
-		"ID":         user.Id.String(),
-		"OID":        user.Oauth_provider_id.String,
-		"CreatedAt":  user.Created_at.Time.Format(time.DateTime),
-		"PictureURL": user.AvatarURL.String,
+		"Email":       user.Email.String,
+		"Firstname":   user.Firstname.String,
+		"Surname":     user.Surname.String,
+		"ID":          user.Id.String(),
+		"OID":         user.Oauth_provider_id.String,
+		"CreatedAt":   user.Created_at.Time.Format(time.DateTime),
+		"PictureURL":  user.AvatarURL.String,
+		"Permissions": permissions,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedJWT, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -189,16 +192,37 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	return templates.Claims{
-		Email:      user.Email.String,
-		Firstname:  user.Firstname.String,
-		Surname:    user.Surname.String,
-		ID:         user.Id.String(),
-		Fullname:   user.Firstname.String + " " + user.Surname.String,
-		PictureURL: user.AvatarURL.String,
-		CreatedAt:  user.Created_at.Time.Format(time.DateTime),
+		Email:       user.Email.String,
+		Firstname:   user.Firstname.String,
+		Surname:     user.Surname.String,
+		ID:          user.Id.String(),
+		Fullname:    user.Firstname.String + " " + user.Surname.String,
+		PictureURL:  user.AvatarURL.String,
+		CreatedAt:   user.Created_at.Time.Format(time.DateTime),
+		Permissions: permissions,
 	}, nil
 	// This doesn't work, I suppose because the request bounced to another origin
 	// http.Redirect(w, r, "/user", http.StatusFound)
+}
+
+func readPermissions(ctx context.Context, conn *pgxpool.Pool, userId string) ([]string, error) {
+	rows, err := conn.Query(ctx, `SELECT * from permissions WHERE user_id=$1`, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var permissions []string
+	for rows.Next() {
+		var p db.PermissionModel
+		err = rows.Scan(&p.Id, &p.User_id, &p.Permission, &p.Created_at)
+		if err != nil {
+			return nil, err
+		}
+		permissions = append(permissions, p.Permission.String)
+	}
+
+	return permissions, nil
 }
 
 func (p *AuthProvider) HandleLogout(w http.ResponseWriter, r *http.Request) {
@@ -258,6 +282,7 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) 
 		templateClaims.Fullname = claims["Firstname"].(string) + " " + claims["Surname"].(string)
 		templateClaims.PictureURL = claims["PictureURL"].(string)
 		templateClaims.CreatedAt = claims["CreatedAt"].(string)
+		templateClaims.Permissions = claims["Permissions"].([]string)
 		return templateClaims, nil
 	} else {
 		return templateClaims, errors.New("Invalid claims format")
