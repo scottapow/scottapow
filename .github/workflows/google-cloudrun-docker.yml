@@ -92,6 +92,7 @@ jobs:
             GOOGLE_SECRET=GOOGLE_SECRET:latest
             SESSION_SECRET=SESSION_SECRET:latest
             DB_CONN_STR=DB_CONN_STR:latest
+            JWT_SECRET=JWT_SECRET:latest
 
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}
