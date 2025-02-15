@@ -19,12 +19,12 @@ func main() {
 
 	store, err := db.Connect()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("Failed to start DB", err.Error())
 	}
 
 	err = store.Setup()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("Failed to setup data store", err.Error())
 	}
 
 	web := web.NewWeb()
