@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,7 +24,7 @@ func main() {
 
 	err = store.Setup()
 	if err != nil {
-		log.Fatal("Failed to setup db")
+		log.Fatal(err.Error())
 	}
 
 	web := web.NewWeb()
@@ -82,6 +83,7 @@ func main() {
 	s.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// error ignored because auth is not required
 		claims, _ := a.GetUserClaims(r)
+		fmt.Println(claims)
 		web.Home(w, r, claims)
 	})
 	s.Router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
@@ -94,10 +96,20 @@ func main() {
 
 		web.WriteUserTemplate(w, r, claims)
 	})
-	s.Router.HandleFunc("/calories", func(w http.ResponseWriter, r *http.Request) {
-		claims, _ := a.GetUserClaims(r)
-		web.Calories(w, r, claims)
-	})
+	s.Router.HandleFunc("/calories", caloriesService.WithPermission(
+		"calories_read",
+		func(w http.ResponseWriter, r *http.Request) {
+			claims, err := a.GetUserClaims(r)
+			if err != nil {
+				// w.Header().Set("WWW-Authenticate", "Basic realm=\"Dev"")
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+			entries, err := caloriesService.GetAllCaloriesData(r.Context(), claims.ID)
+			fmt.Println(entries)
+			web.Calories(w, r, claims)
+		},
+	))
 	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback

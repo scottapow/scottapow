@@ -59,13 +59,13 @@ func (s *Store) Setup() error {
 			id          UUID PRIMARY KEY,
 			user_id     UUID REFERENCES users(id),
 			created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at  TIMESTAMP,
+			updated_at  TIMESTAMP
 		);
 		CREATE TABLE IF NOT EXISTS calorie_entries(
 			id           UUID PRIMARY KEY,
 			calories_id  UUID REFERENCES calories(id),
 			amount       SMALLINT,
-			consumed_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			consumed_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
 	`)
 

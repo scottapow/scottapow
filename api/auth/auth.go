@@ -162,6 +162,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	permissions, err := readPermissions(r.Context(), p.DB, user.Id.String())
+	fmt.Println(permissions)
 
 	claims := &jwt.MapClaims{
 		"Email":       user.Email.String,
@@ -206,6 +207,7 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 }
 
 func readPermissions(ctx context.Context, conn *pgxpool.Pool, userId string) ([]string, error) {
+	fmt.Println("reading permissions")
 	rows, err := conn.Query(ctx, `SELECT * from permissions WHERE user_id=$1`, userId)
 	if err != nil {
 		return nil, err
@@ -217,6 +219,7 @@ func readPermissions(ctx context.Context, conn *pgxpool.Pool, userId string) ([]
 		var p db.PermissionModel
 		err = rows.Scan(&p.Id, &p.User_id, &p.Permission, &p.Created_at)
 		if err != nil {
+			fmt.Println(err.Error())
 			return nil, err
 		}
 		permissions = append(permissions, p.Permission.String)
@@ -250,7 +253,6 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) 
 	if session.IsNew {
 		return templateClaims, errors.New("User Session not available")
 	}
-	fmt.Printf("\n\nValues %+v\n\n", session)
 
 	expiry, ok := session.Values["expiry"]
 	if !ok || expiry == nil {
@@ -274,15 +276,16 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) 
 		return templateClaims, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		templateClaims.Email = claims["Email"].(string)
-		templateClaims.Firstname = claims["Firstname"].(string)
-		templateClaims.Surname = claims["Surname"].(string)
-		templateClaims.ID = claims["ID"].(string)
-		templateClaims.Fullname = claims["Firstname"].(string) + " " + claims["Surname"].(string)
-		templateClaims.PictureURL = claims["PictureURL"].(string)
-		templateClaims.CreatedAt = claims["CreatedAt"].(string)
-		templateClaims.Permissions = claims["Permissions"].([]string)
+	c, ok := token.Claims.(jwt.MapClaims)
+	if ok {
+		templateClaims.Email = c["Email"].(string)
+		templateClaims.Firstname = c["Firstname"].(string)
+		templateClaims.Surname = c["Surname"].(string)
+		templateClaims.ID = c["ID"].(string)
+		templateClaims.Fullname = c["Firstname"].(string) + " " + c["Surname"].(string)
+		templateClaims.PictureURL = c["PictureURL"].(string)
+		templateClaims.CreatedAt = c["CreatedAt"].(string)
+		// templateClaims.Permissions = c["Permissions"].([]string)
 		return templateClaims, nil
 	} else {
 		return templateClaims, errors.New("Invalid claims format")
@@ -322,10 +325,12 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 	// new user
 	pass, err := GenerateSecurePassword()
 	if err != nil {
+		tx.Rollback(ctx)
 		return nil, err
 	}
 	hashedPass, err := bcrypt.GenerateFromPassword(pass, bcrypt.DefaultCost)
 	if err != nil {
+		tx.Rollback(ctx)
 		return nil, err
 	}
 	err = tx.QueryRow(ctx, `
@@ -345,6 +350,18 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 	).Scan(&u.Id, &u.Email, &u.Created_at, &u.Updated_at, &u.Login_at, &u.Firstname, &u.Surname, &u.AvatarURL, &u.Oauth_provider_id)
 
 	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	r, err := tx.Query(ctx, `
+		INSERT INTO permissions (id, user_id, permission)
+		VALUES (gen_random_uuid(), $1, 'calories_read'), (gen_random_uuid(), $1, 'calories_write');
+	`, u.Id.String())
+	r.Close()
+
+	if err != nil {
+		tx.Rollback(ctx)
 		return nil, err
 	}
 
