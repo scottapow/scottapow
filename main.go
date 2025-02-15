@@ -19,7 +19,7 @@ func main() {
 
 	store, err := db.Connect()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
 	err = store.Setup()
