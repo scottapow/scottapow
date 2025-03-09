@@ -112,13 +112,15 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("state", state)
 	url := p.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
 	cookie := http.Cookie{
-		Name:    stateCookieName,
-		Value:   state,
-		Expires: time.Now().Add(time.Hour * 1),
-		Path:    "/",
-		Secure:  false,
+		Name:     stateCookieName,
+		Value:    state,
+		Expires:  time.Now().Add(time.Hour),
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
+	r.AddCookie(&cookie)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	return
 }
