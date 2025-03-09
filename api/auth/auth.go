@@ -122,9 +122,13 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (templates.Claims, error) {
-	oauthState, _ := r.Cookie(stateCookieName)
+	oauthState, err := r.Cookie(stateCookieName)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, http.ErrNoCookie.Error(), http.StatusInternalServerError)
+		return templates.Claims{}, err
+	}
 	if r.FormValue("state") != oauthState.Value {
-		// TODO: notify user and clear state cookie
 		fmt.Println("invalid oauth google state")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return templates.Claims{}, errors.New("Invalid State")
@@ -142,7 +146,8 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	session, err := p.Store.Get(r, AuthCookieName)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, http.ErrNoCookie.Error(), 1)
+		http.Error(w, http.ErrNoCookie.Error(), http.StatusInternalServerError)
+		return templates.Claims{}, err
 	}
 
 	// get user or create
