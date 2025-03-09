@@ -124,6 +124,10 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (templates.Claims, error) {
 	oauthState, err := r.Cookie(stateCookieName)
+	fmt.Println(w, "Cookies:")
+	for _, cookie := range r.Cookies() {
+		fmt.Printf("  %s=%s\n", cookie.Name, cookie.Value)
+	}
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, http.ErrNoCookie.Error(), http.StatusInternalServerError)
