@@ -114,7 +114,9 @@ func main() {
 		// get cookie
 		c, err := r.Cookie("authstate")
 		if err == nil {
-			fmt.Println(c)
+			fmt.Println("Cookie found:", c)
+		} else {
+			fmt.Println("Error retrieving cookie:", err)
 		}
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback

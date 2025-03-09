@@ -112,12 +112,16 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("state", state)
 	url := p.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
 	cookie := http.Cookie{
-		Name:    stateCookieName,
-		Value:   state,
-		Expires: time.Now().Add(time.Hour),
-		Path:    "/",
+		Name:     stateCookieName,
+		Value:    state,
+		Expires:  time.Now().Add(time.Hour),
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
+	fmt.Println("Set cookie:", cookie)
 	r.AddCookie(&cookie)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	return
@@ -125,14 +129,14 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (templates.Claims, error) {
 	oauthState, err := r.Cookie(stateCookieName)
-
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error retrieving cookie:", err)
 		http.Error(w, http.ErrNoCookie.Error(), http.StatusInternalServerError)
 		return templates.Claims{}, err
 	}
+	fmt.Println("OAuth state from cookie:", oauthState.Value)
 	if r.FormValue("state") != oauthState.Value {
-		fmt.Println("invalid oauth google state")
+		fmt.Println("Invalid OAuth state")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return templates.Claims{}, errors.New("Invalid State")
 	}
