@@ -115,6 +115,7 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Name:    stateCookieName,
 		Value:   state,
 		Expires: time.Now().Add(time.Hour * 1),
+		Path:    "/",
 	}
 	http.SetCookie(w, &cookie)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
