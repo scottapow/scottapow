@@ -53,7 +53,7 @@ func NewAuthProvider(conn *pgxpool.Pool) (*AuthProvider, error) {
 	store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
 	store.MaxAge(86400 * 1) // 1 day
 	store.Options.Secure = true
-	store.Options.SameSite = http.SameSiteStrictMode
+	store.Options.SameSite = http.SameSiteNoneMode
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
 
@@ -112,12 +112,9 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("state", state)
 	url := p.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
 	cookie := http.Cookie{
-		Name:     stateCookieName,
-		Value:    state,
-		Expires:  time.Now().Add(time.Hour),
-		Path:     "/",
-		Secure:   true,
-		HttpOnly: true,
+		Name:    stateCookieName,
+		Value:   state,
+		Expires: time.Now().Add(time.Hour),
 	}
 	http.SetCookie(w, &cookie)
 	r.AddCookie(&cookie)
@@ -127,10 +124,7 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (templates.Claims, error) {
 	oauthState, err := r.Cookie(stateCookieName)
-	fmt.Println("Cookies:")
-	for _, cookie := range r.Cookies() {
-		fmt.Println(cookie)
-	}
+
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, http.ErrNoCookie.Error(), http.StatusInternalServerError)
