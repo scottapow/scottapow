@@ -111,6 +111,11 @@ func main() {
 		},
 	))
 	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+		// get cookie
+		c, err := r.Cookie("authstate")
+		if err == nil {
+			fmt.Println(c)
+		}
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback
 		if err == nil {

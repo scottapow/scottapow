@@ -115,6 +115,7 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Name:    stateCookieName,
 		Value:   state,
 		Expires: time.Now().Add(time.Hour),
+		Path:    "/",
 	}
 	http.SetCookie(w, &cookie)
 	r.AddCookie(&cookie)
