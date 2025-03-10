@@ -24,7 +24,7 @@ import (
 const (
 	oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 	AuthCookieName    = "oauthstate"
-	stateCookieName   = "authstate"
+	stateCookieName   = "__session"
 )
 
 var (
