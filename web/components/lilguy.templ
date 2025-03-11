@@ -2,24 +2,20 @@ package components
 
 templ LilGuy(id string) {
 	<script>
+    /** @param {string} id */
     function initLilGuy(id) {
       let lilguy = document.getElementById(id);
-      console.log({ lilguy, id });
-      if (!lilguy) {
-        return;
-      }
+      if (!lilguy) return;
+
       let leftEye = lilguy.querySelector(".left-eye");
       let rightEye = lilguy.querySelector(".right-eye");
 
       addTimeBasedFeatures();
-
-      // accessories
       setInterval(addTimeBasedFeatures, 1000 * 60 * 60 /* every hour */);
 
       function addTimeBasedFeatures() {
         let now = new Date();
         let hours = now.getHours();
-        console.log(hours);
         if (hours >= 5 && hours < 11) {
           // morning
           leftEye.classList.remove('squint')
@@ -44,7 +40,7 @@ templ LilGuy(id string) {
           leftEye.classList.add('squint')
           rightEye.classList.add('squint')
         }
-      }
+      };
     }
   </script>
 	<style>
