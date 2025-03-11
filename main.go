@@ -83,7 +83,6 @@ func main() {
 	s.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// error ignored because auth is not required
 		claims, _ := a.GetUserClaims(r)
-		fmt.Println(claims)
 		web.Home(w, r, claims)
 	})
 	s.Router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
@@ -111,17 +110,10 @@ func main() {
 		},
 	))
 	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
-		// get cookie
-		c, err := r.Cookie("authstate")
-		if err == nil {
-			fmt.Println("Cookie found:", c)
-		} else {
-			fmt.Println("Error retrieving cookie:", err)
-		}
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback
-		if err == nil {
-			web.WriteUserTemplate(w, r, claims)
+		if err == nil && claims.ID != "" {
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		}
 	})
 	s.Router.HandleFunc("/logout/{provider}", a.HandleLogout)

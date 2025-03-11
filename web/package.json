@@ -6,14 +6,14 @@
   "type": "module",
   "devDependencies": {
     "@pandacss/dev": "^0.41.0",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.0.12",
     "typescript": "^5.5.2"
   },
   "scripts": {
-    "prepare": "panda codegen",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "npx panda && mv ./js/styled-system/styles.css ./static/css/main.css",
-    "build:js": "tsc && esbuild js/main.ts --bundle --outdir=static/js"
+    "build:css": "npx @tailwindcss/cli -i ./input.css -o ./public/output.css",
+    "build:css:watch": "npx @tailwindcss/cli -i ./input.css -o ./public/output.css --watch",
+    "build:js": "tsc && esbuild public/main.ts --bundle --outdir=static/js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/scottapow/scottapow#readme",
   "dependencies": {
+    "@tailwindcss/cli": "^4.0.12",
     "@types/node": "^20.14.9",
     "esbuild": "^0.23.0"
   }

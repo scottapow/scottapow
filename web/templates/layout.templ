@@ -37,6 +37,7 @@ templ Layout(buildId string, head HeadData, user Claims) {
 			<meta property="og:title" content={ head.Title }/>
 			<meta property="og:description" content={ head.Description }/>
 			<meta property="og:image" content={ head.Image }/>
+			<link rel="icon" href="/web/public/logo.svg" type="image/svg+xml"/>
 			<link href={ "/web/public/output.css?v=" + buildId } rel="stylesheet"/>
 		</head>
 		<body>

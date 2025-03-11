@@ -1,0 +1,46 @@
+package components
+
+var lilguyOnce = templ.NewOnceHandle()
+
+templ LilGuy(id string) {
+	@lilguyOnce.Once() {
+		<script>
+      function initLilGuy(id) {
+        const lilguy = document.getElementById(id);
+        setInterval(() => {
+          lilguy.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
+        }, 1000)
+      }
+    </script>
+	}
+	<svg
+		viewBox="0 0 72 62"
+		xmlns="http://www.w3.org/2000/svg"
+		stroke-width="6px"
+		fill="none"
+		stroke-linecap="round"
+		stroke="currentColor"
+		height="100%"
+		id={ id }
+		onload={ templ.JSFuncCall("initLilGuy", id) }
+	>
+		<path
+			d="
+        M 41,59
+        L 41,45
+        Q 41,31 55,31
+        Q 69,31 69,17
+        Q 69,3 55,3
+        L 17,3
+        Q 3,3 3,17
+        Q 3,31 17,31
+        Q 31,31 31,45
+        Q 31,59 17,59
+        L 3,59
+    "
+		></path>
+		<path d="M 17,17 L 17,17"></path>
+		<path d="M 55,17 L 55,17"></path>
+		<path stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
+	</svg>
+}

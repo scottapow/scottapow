@@ -21,9 +21,9 @@ run/air-assets:
 run/templ:
 	templ generate --watch --proxy="http://localhost:3000" --cmd="go run *.go" --open-browser=false
 run/tailwind:
-	cd web && npx tailwindcss -i ./public/input.css -o ./public/output.css --minify --watch
+	cd web && npm run build:css:watch
 run:
 	make -j4 run/templ run/air-go run/tailwind run/air-assets
 
 buildweb:
-	cd web && npx tailwindcss -i ./public/input.css -o ./public/output.css --minify
+	cd web && npm run build:css

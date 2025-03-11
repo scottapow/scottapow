@@ -3,7 +3,7 @@
 \"><meta property=\"og:title\" content=\"
 \"><meta property=\"og:description\" content=\"
 \"><meta property=\"og:image\" content=\"
-\"><link href=\"
+\"><link rel=\"icon\" href=\"/web/public/logo.svg\" type=\"image/svg+xml\"><link href=\"
 \" rel=\"stylesheet\"></head><body>
 <main class=\"p-4\">
 </main></body></html>

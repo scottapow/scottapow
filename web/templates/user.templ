@@ -8,12 +8,8 @@ templ UserPage(buildId string, user Claims) {
 		Description: fmt.Sprintf("User Profile - %s %s", user.Firstname, user.Surname),
 		Image:       user.PictureURL,
 	}, user) {
-		<h1>Welcome</h1>
-		<p><a href="/logout/google">logout</a></p>
-		<p>Name: { user.Firstname } { user.Surname }</p>
-		<p>Email: { user.Email }</p>
-		<p>Created At: { user.CreatedAt }</p>
+		<h1>Welcome, { user.Firstname } { user.Surname }</h1>
 		<p><img src={ user.PictureURL }/></p>
-		<p>UserID: { user.ID }</p>
+		<p><b>Email</b>: { user.Email }</p>
 	}
 }

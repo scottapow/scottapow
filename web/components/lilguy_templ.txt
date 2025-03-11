@@ -1,0 +1,4 @@
+<script>\n      function initLilGuy(id) {\n        const lilguy = document.getElementById(id);\n        console.log(lilguy);\n      }\n    </script>
+<svg viewBox=\"0 0 72 62\" xmlns=\"http://www.w3.org/2000/svg\" stroke-width=\"6px\" fill=\"none\" stroke-linecap=\"round\" stroke=\"currentColor\" height=\"100%\" id=\"
+\" onload=\"
+\"><path d=\"\n        M 41,59\n        L 41,45\n        Q 41,31 55,31\n        Q 69,31 69,17\n        Q 69,3 55,3\n        L 17,3\n        Q 3,3 3,17\n        Q 3,31 17,31\n        Q 31,31 31,45\n        Q 31,59 17,59\n        L 3,59\n    \"></path> <path d=\"M 17,17 L 17,17\"></path> <path d=\"M 55,17 L 55,17\"></path> <path stroke-width=\"3px\" d=\"M 33,24 C 33,27 39,27 39,24\"></path></svg>

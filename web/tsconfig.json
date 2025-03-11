@@ -3,12 +3,11 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "rootDir": "js",
     "moduleResolution": "Bundler",
     "paths": {
       "~/*": ["./"]
     },
-    "allowJs": false,
+    "allowJs": true,
     "checkJs": false,
     "declaration": true,
     "outDir": "web/static/js",
@@ -23,6 +22,6 @@
     "skipLibCheck": true,
     "types": [],
   },
-  "include":  ["js/**/*"],
+  "include": ["**/*.ts", "**/*.js"],
   "exclude": ["node_modules"]
 }

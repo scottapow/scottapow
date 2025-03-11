@@ -1,7 +1,5 @@
-<h1>Welcome</h1><p><a href=\"/logout/google\">logout</a></p><p>Name: 
+<h1>Welcome, 
  
-</p><p>Email: 
-</p><p>Created At: 
-</p><p><img src=\"
-\"></p><p>UserID: 
+</h1><p><img src=\"
+\"></p><p><b>Email</b>: 
 </p>
