@@ -3,21 +3,47 @@ package components
 templ LilGuy(id string) {
 	<script>
     function initLilGuy(id) {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      let lilguy = document.getElementById(id);
+      console.log({ lilguy, id });
+      if (!lilguy) {
         return;
       }
-      let lilguy = document.getElementById(id);
-      if (lilguy) {
-        let leftEye = lilguy.querySelector(".left-eye");
-        let rightEye = lilguy.querySelector(".right-eye");
-        let mouth = lilguy.querySelector(".mouth");
-        let hand = lilguy.querySelector(".hand");
-        // setInterval(() => {
-        //   setInterval(() => {
+      let leftEye = lilguy.querySelector(".left-eye");
+      let rightEye = lilguy.querySelector(".right-eye");
 
-        //     hand.setAttribute("d", "M 17,59 Q 10,59 3,59");
-        //   })
-        // }, 10000);
+      addTimeBasedFeatures();
+
+      // accessories
+      setInterval(addTimeBasedFeatures, 1000 * 60 * 60 /* every hour */);
+
+      function addTimeBasedFeatures() {
+        let now = new Date();
+        let hours = now.getHours();
+        console.log(hours);
+        if (hours >= 5 && hours < 11) {
+          // morning
+          leftEye.classList.remove('squint')
+          rightEye.classList.remove('squint')
+          leftEye.classList.add('blink')
+          rightEye.classList.add('blink')
+          lilguy.querySelector(".coffee").classList.remove("hidden");
+        } else {
+          lilguy.querySelector(".coffee").classList.add("hidden");
+        }
+        if (hours >= 11 && hours < 22) {
+          // afternoon
+          leftEye.classList.remove('squint')
+          rightEye.classList.remove('squint')
+          leftEye.classList.add('blink')
+          rightEye.classList.add('blink')
+        }
+        if (hours >= 22 || hours < 5) {
+          // night
+          leftEye.classList.remove('blink')
+          rightEye.classList.remove('blink')
+          leftEye.classList.add('squint')
+          rightEye.classList.add('squint')
+        }
       }
     }
   </script>
@@ -37,16 +63,19 @@ templ LilGuy(id string) {
       }
     }
   
+
     .left-eye {
       --eye-originx: 17px;
       --eye-originy: 17px;
-      animation-name: eye-blink;
-      animation-duration: 10s;
-      animation-iteration-count: infinite;
     }
     .right-eye {
       --eye-originx: 55px;
       --eye-originy: 17px;
+    }
+    .squint {
+      transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1))
+    }
+    .blink {
       animation-name: eye-blink;
       animation-duration: 10s;
       animation-iteration-count: infinite;
@@ -57,44 +86,50 @@ templ LilGuy(id string) {
       }
     }
   </style>
-	<svg
-		viewBox="0 0 72 62"
-		xmlns="http://www.w3.org/2000/svg"
-		stroke-width="6px"
-		fill="none"
-		stroke-linecap="round"
-		stroke="currentColor"
-		height="100%"
-		id={ id }
-		onload={ templ.JSFuncCall("initLilGuy", id) }
-	>
-		<title>Stylized S P, the initials of Scott Powell</title>
-		<path
-			d="
-        M 41,59
-        L 41,45
-        Q 41,31 55,31
-        Q 69,31 69,17
-        Q 69,3 55,3
-        L 17,3
-        Q 3,3 3,17
-        Q 3,31 17,31
-        Q 31,31 31,45
-        Q 31,59 17,59
-    "
-		></path>
-		<path class="hand" d="M 17,59 Q 10,59 3,59">
-			<animate
-				attributeName="d"
-				values="M 17,59 Q 10,59 3,59"
-				to="M 17,59 Q 10,59 3,59"
-				dur="1s"
-				repeatDur=""
-				repeatCount="indefinite"
-			></animate>
-		</path>
-		<path class="left-eye" d="M 17,17 L 17,17"></path>
-		<path class="right-eye" d="M 55,17 L 55,17"></path>
-		<path class="mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
-	</svg>
+	<div class="grid place-content-center" id={ id }>
+		<div class="row-start-1 col-start-1 h-8">
+			<svg
+				viewBox="0 0 72 62"
+				xmlns="http://www.w3.org/2000/svg"
+				stroke-width="6px"
+				fill="none"
+				stroke-linecap="round"
+				stroke="currentColor"
+				height="100%"
+				onload={ templ.JSFuncCall("initLilGuy", id) }
+			>
+				<title>Stylized S P, the initials of Scott Powell</title>
+				<path
+					d="
+            M 41,59
+            L 41,45
+            Q 41,31 55,31
+            Q 69,31 69,17
+            Q 69,3 55,3
+            L 17,3
+            Q 3,3 3,17
+            Q 3,31 17,31
+            Q 31,31 31,45
+            Q 31,59 17,59
+        "
+				></path>
+				<path class="hand" d="M 17,59 Q 10,59 3,59">
+					<animate
+						attributeName="d"
+						values="M 17,59 Q 10,59 3,59"
+						to="M 17,59 Q 10,59 3,59"
+						dur="1s"
+						repeatDur=""
+						repeatCount="indefinite"
+					></animate>
+				</path>
+				<path class="left-eye" d="M 17,17 L 17,17"></path>
+				<path class="right-eye" d="M 55,17 L 55,17"></path>
+				<path class="mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
+			</svg>
+		</div>
+		<div class="coffee hidden row-start-1 col-start-1 h-4 self-end justify-self-start -scale-x-100 -translate-x-0.5 translate-y-1">
+			@coffee()
+		</div>
+	</div>
 }
