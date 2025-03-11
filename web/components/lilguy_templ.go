@@ -8,8 +8,6 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-var lilguyOnce = templ.NewOnceHandle()
-
 func LilGuy(id string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -31,25 +29,7 @@ func LilGuy(id string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
-			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script>\n      function initLilGuy(id) {\n        const lilguy = document.getElementById(id);\n        console.log(lilguy);\n      }\n    </script>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			return nil
-		})
-		templ_7745c5c3_Err = lilguyOnce.Once().Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script>\n    function initLilGuy(id) {\n      if (window.matchMedia(\"(prefers-reduced-motion: reduce)\").matches) {\n        return;\n      }\n      let lilguy = document.getElementById(id);\n      if (lilguy) {\n        let leftEye = lilguy.querySelector(\".left-eye\");\n        let rightEye = lilguy.querySelector(\".right-eye\");\n        let mouth = lilguy.querySelector(\".mouth\");\n        let hand = lilguy.querySelector(\".hand\");\n        // setInterval(() => {\n        //   setInterval(() => {\n\n        //     hand.setAttribute(\"d\", \"M 17,59 Q 10,59 3,59\");\n        //   })\n        // }, 10000);\n      }\n    }\n  </script><style>\n    @keyframes eye-blink {\n      0% {\n        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));\n      }\n      1% {\n        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));\n      }\n      2% {\n        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));\n      }\n      100% {\n        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));\n      }\n    }\n  \n    .left-eye {\n      --eye-originx: 17px;\n      --eye-originy: 17px;\n      animation-name: eye-blink;\n      animation-duration: 10s;\n      animation-iteration-count: infinite;\n    }\n    .right-eye {\n      --eye-originx: 55px;\n      --eye-originy: 17px;\n      animation-name: eye-blink;\n      animation-duration: 10s;\n      animation-iteration-count: infinite;\n    }\n    @media (prefers-reduced-motion: reduce) {\n      .left-eye, .right-eye {\n        animation: none;\n      }\n    }\n  </style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -61,12 +41,12 @@ func LilGuy(id string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(id)
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/lilguy.templ`, Line: 22, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/lilguy.templ`, Line: 68, Col: 9}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -74,12 +54,12 @@ func LilGuy(id string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 templ.ComponentScript = templ.JSFuncCall("initLilGuy", id)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4.Call)
+		var templ_7745c5c3_Var3 templ.ComponentScript = templ.JSFuncCall("initLilGuy", id)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3.Call)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><path d=\"\n        M 41,59\n        L 41,45\n        Q 41,31 55,31\n        Q 69,31 69,17\n        Q 69,3 55,3\n        L 17,3\n        Q 3,3 3,17\n        Q 3,31 17,31\n        Q 31,31 31,45\n        Q 31,59 17,59\n        L 3,59\n    \"></path> <path d=\"M 17,17 L 17,17\"></path> <path d=\"M 55,17 L 55,17\"></path> <path stroke-width=\"3px\" d=\"M 33,24 C 33,27 39,27 39,24\"></path></svg>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><title>Stylized S P, the initials of Scott Powell</title><path d=\"\n        M 41,59\n        L 41,45\n        Q 41,31 55,31\n        Q 69,31 69,17\n        Q 69,3 55,3\n        L 17,3\n        Q 3,3 3,17\n        Q 3,31 17,31\n        Q 31,31 31,45\n        Q 31,59 17,59\n    \"></path> <path class=\"hand\" d=\"M 17,59 Q 10,59 3,59\"><animate attributeName=\"d\" values=\"M 17,59 Q 10,59 3,59\" to=\"M 17,59 Q 10,59 3,59\" dur=\"1s\" repeatDur=\"\" repeatCount=\"indefinite\"></animate></path> <path class=\"left-eye\" d=\"M 17,17 L 17,17\"></path> <path class=\"right-eye\" d=\"M 55,17 L 55,17\"></path> <path class=\"mouth\" stroke-width=\"3px\" d=\"M 33,24 C 33,27 39,27 39,24\"></path></svg>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

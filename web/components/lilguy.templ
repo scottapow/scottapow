@@ -1,18 +1,62 @@
 package components
 
-var lilguyOnce = templ.NewOnceHandle()
-
 templ LilGuy(id string) {
-	@lilguyOnce.Once() {
-		<script>
-      function initLilGuy(id) {
-        const lilguy = document.getElementById(id);
-        setInterval(() => {
-          lilguy.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
-        }, 1000)
+	<script>
+    function initLilGuy(id) {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
       }
-    </script>
-	}
+      let lilguy = document.getElementById(id);
+      if (lilguy) {
+        let leftEye = lilguy.querySelector(".left-eye");
+        let rightEye = lilguy.querySelector(".right-eye");
+        let mouth = lilguy.querySelector(".mouth");
+        let hand = lilguy.querySelector(".hand");
+        // setInterval(() => {
+        //   setInterval(() => {
+
+        //     hand.setAttribute("d", "M 17,59 Q 10,59 3,59");
+        //   })
+        // }, 10000);
+      }
+    }
+  </script>
+	<style>
+    @keyframes eye-blink {
+      0% {
+        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+      }
+      1% {
+        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+      }
+      2% {
+        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+      }
+      100% {
+        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+      }
+    }
+  
+    .left-eye {
+      --eye-originx: 17px;
+      --eye-originy: 17px;
+      animation-name: eye-blink;
+      animation-duration: 10s;
+      animation-iteration-count: infinite;
+    }
+    .right-eye {
+      --eye-originx: 55px;
+      --eye-originy: 17px;
+      animation-name: eye-blink;
+      animation-duration: 10s;
+      animation-iteration-count: infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .left-eye, .right-eye {
+        animation: none;
+      }
+    }
+  </style>
 	<svg
 		viewBox="0 0 72 62"
 		xmlns="http://www.w3.org/2000/svg"
@@ -24,6 +68,7 @@ templ LilGuy(id string) {
 		id={ id }
 		onload={ templ.JSFuncCall("initLilGuy", id) }
 	>
+		<title>Stylized S P, the initials of Scott Powell</title>
 		<path
 			d="
         M 41,59
@@ -36,11 +81,20 @@ templ LilGuy(id string) {
         Q 3,31 17,31
         Q 31,31 31,45
         Q 31,59 17,59
-        L 3,59
     "
 		></path>
-		<path d="M 17,17 L 17,17"></path>
-		<path d="M 55,17 L 55,17"></path>
-		<path stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
+		<path class="hand" d="M 17,59 Q 10,59 3,59">
+			<animate
+				attributeName="d"
+				values="M 17,59 Q 10,59 3,59"
+				to="M 17,59 Q 10,59 3,59"
+				dur="1s"
+				repeatDur=""
+				repeatCount="indefinite"
+			></animate>
+		</path>
+		<path class="left-eye" d="M 17,17 L 17,17"></path>
+		<path class="right-eye" d="M 55,17 L 55,17"></path>
+		<path class="mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
 	</svg>
 }

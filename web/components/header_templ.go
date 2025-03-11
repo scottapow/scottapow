@@ -34,7 +34,7 @@ func Header(navItems []NavItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"p-4 bg-white dark:bg-slate-900 shadow-neutral-400\"><nav><ul class=\"flex list-none gap-4 justify-end\"><li class=\"mr-auto\"><a class=\"text-slate-9bg-slate-900 dark:text-white hover:underline h-6 w-full block\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"px-4 py-2 bg-white dark:bg-slate-900 shadow-neutral-400\"><nav><ul class=\"flex list-none gap-4 justify-end\"><li class=\"mr-auto\"><a class=\"text-slate-9bg-slate-900 dark:text-white hover:underline h-8 w-full block\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -56,7 +56,7 @@ func Header(navItems []NavItem) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, item := range navItems {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<li><a class=\"text-slate-900 dark:text-white hover:underline\" href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<li class=\"py-1\"><a class=\"text-slate-900 dark:text-white hover:underline\" href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -72,7 +72,7 @@ func Header(navItems []NavItem) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/header.templ`, Line: 22, Col: 111}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/header.templ`, Line: 22, Col: 124}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
