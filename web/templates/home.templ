@@ -1,11 +1,32 @@
 package templates
 
+import "github.com/scottapow/scottapow/web/components"
+
 templ HomePage(buildId string, user Claims) {
 	@Layout(buildId, HeadData{
 		Title:       "Home",
 		Description: "Home page",
 		Image:       "",
 	}, user) {
-		<h1>Home</h1>
+		<article class="text-slate-900 dark:text-white bg-white dark:bg-slate-900">
+			<header class="py-6">
+				<h1 class="mb-2">
+					@components.Heading1("Scott Powell")
+				</h1>
+				<h2>
+					@components.Heading2("Senior Software Engineer, Front End Focus")
+				</h2>
+				// add a scale showing where on the spectrum of front end to back end you are
+				// allow it to be slidable
+			</header>
+			<section></section>
+		</article>
+		// @components.Heading2("About this System")
+		// @components.Paragraph("This system provides consistent text styling throughout your application.")
+		// @components.Heading3("Features")
+		// @components.Paragraph("Includes various text components like headings, paragraphs, and more. Visit our ")
+		// @components.TextLink("documentation")
+		// @components.Paragraph(" for more information.")
+		// @components.SmallText("Last updated: September 2023")
 	}
 }
