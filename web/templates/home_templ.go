@@ -43,7 +43,7 @@ func HomePage(buildId string, user Claims) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"text-slate-900 dark:text-white bg-white dark:bg-slate-900\"><header class=\"py-6\"><h1 class=\"mb-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article><header class=\"py-6 px-4 text-white dark:text-slate-900 bg-slate-900 dark:bg-white\"><h1 class=\"mb-4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -55,7 +55,7 @@ func HomePage(buildId string, user Claims) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Heading2("Senior Software Engineer, Front End Focus").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Heading3("Senior Software Engineer, Front End Focus").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -5,5 +5,5 @@
 \"><meta property=\"og:image\" content=\"
 \"><link rel=\"icon\" href=\"/web/public/logo.svg\" type=\"image/svg+xml\"><link href=\"
 \" rel=\"stylesheet\"></head><body>
-<main class=\"p-4\">
+<main>
 </main></body></html>
