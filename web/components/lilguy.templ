@@ -5,7 +5,14 @@ templ LilGuy(id string) {
     /** @param {string} id */
     function initLilGuy(id) {
       let lilguy = document.getElementById(id);
+
       if (!lilguy) return;
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        (lilguy.querySelectorAll('svg') ?? []).forEach(/** @param {SVGSVGElement} svg */(svg) => {
+          svg.pauseAnimations();
+        });
+      }
 
       let leftEye = lilguy.querySelector(".left-eye");
       let rightEye = lilguy.querySelector(".right-eye");
@@ -112,11 +119,19 @@ templ LilGuy(id string) {
 				<path class="hand" d="M 17,59 Q 10,59 3,59">
 					<animate
 						attributeName="d"
-						values="M 17,59 Q 10,59 3,59"
-						to="M 17,59 Q 10,59 3,59"
-						dur="1s"
-						repeatDur=""
+						values="
+              M 17,59 Q 10,59 3,59;
+              M 17,59 Q 10,59 3,59;
+              M 17,59 Q 10,59 3,54;
+              M 17,59 Q 10,59 3,52;
+              M 17,59 Q 10,59 3,54;
+              M 17,59 Q 10,59 3,52;
+              M 17,59 Q 10,59 3,54;
+              M 17,59 Q 10,59 3,59"
+						keyTimes="0;0.90;0.91;0.94;0.95;0.96;0.97;1"
+						dur="18s"
 						repeatCount="indefinite"
+						restart="whenNotActive"
 					></animate>
 				</path>
 				<path class="left-eye" d="M 17,17 L 17,17"></path>
