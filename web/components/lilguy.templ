@@ -16,6 +16,10 @@ templ LilGuy(id string) {
 
       let leftEye = lilguy.querySelector(".left-eye");
       let rightEye = lilguy.querySelector(".right-eye");
+      let hand = lilguy.querySelector(".hand");
+      let wavingHand = lilguy.querySelector(".waving-hand");
+      let mouth = lilguy.querySelector(".mouth");
+      let sleepMouth = lilguy.querySelector(".sleep-mouth");
 
       addTimeBasedFeatures();
       setInterval(addTimeBasedFeatures, 1000 * 60 * 60 /* every hour */);
@@ -25,30 +29,48 @@ templ LilGuy(id string) {
         let hours = now.getHours();
         if (hours >= 5 && hours < 11) {
           // morning
-          leftEye.classList.remove('squint')
-          rightEye.classList.remove('squint')
-          leftEye.classList.add('blink')
-          rightEye.classList.add('blink')
+          removeSquint([leftEye, rightEye]);
+          addBlink([leftEye, rightEye]);
           lilguy.querySelector(".coffee").classList.remove("hidden");
+          // holding coffee cup, so waving is awkward
+          // TODO: check the play state and if it is not playing, add the fill="freeze" attribute
+          wavingHand.setAttribute('visibility', 'visible');
+          hand.setAttribute('visibility', 'hidden');
+          sleepMouth.setAttribute('visibility', 'hidden');
+          mouth.setAttribute('visibility', 'visible');
         } else {
           lilguy.querySelector(".coffee").classList.add("hidden");
         }
         if (hours >= 11 && hours < 22) {
           // afternoon
-          leftEye.classList.remove('squint')
-          rightEye.classList.remove('squint')
-          leftEye.classList.add('blink')
-          rightEye.classList.add('blink')
+          removeSquint([leftEye, rightEye]);
+          addBlink([leftEye, rightEye]);
+          wavingHand.setAttribute('visibility', 'visible');
+          hand.setAttribute('visibility', 'hidden');
+          sleepMouth.setAttribute('visibility', 'hidden');
+          mouth.setAttribute('visibility', 'visible');
         }
         if (hours >= 22 || hours < 5) {
           // night
-          leftEye.classList.remove('blink')
-          rightEye.classList.remove('blink')
-          leftEye.classList.add('squint')
-          rightEye.classList.add('squint')
+          removeBlink([leftEye, rightEye]);
+          addSquint([leftEye, rightEye]);
+          // sleeping, so waving is awkward
+          wavingHand.setAttribute('visibility', 'hidden');
+          hand.setAttribute('visibility', 'visible');
+          sleepMouth.setAttribute('visibility', 'visible');
+          mouth.setAttribute('visibility', 'hidden');
         }
       };
     }
+
+    /** @param {Element[]} els */
+    const removeBlink = (els) => els.forEach(el => el.classList.remove('blink'));
+    /** @param {Element[]} els */
+    const addBlink = (els) => els.forEach(el => el.classList.add('blink'));
+    /** @param {Element[]} els */
+    const removeSquint = (els) => els.forEach(el => el.classList.remove('squint'));
+    /** @param {Element[]} els */
+    const addSquint = (els) => els.forEach(el => el.classList.add('squint'));
   </script>
 	<style>
     @keyframes eye-blink {
@@ -65,7 +87,6 @@ templ LilGuy(id string) {
         transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
       }
     }
-  
 
     .left-eye {
       --eye-originx: 17px;
@@ -116,7 +137,8 @@ templ LilGuy(id string) {
             Q 31,59 17,59
         "
 				></path>
-				<path class="hand" d="M 17,59 Q 10,59 3,59">
+				<path class="hand" d="M 17,59 Q 10,59 3,59"></path>
+				<path class="waving-hand" d="M 17,59 Q 10,59 3,59" visibility="hidden">
 					<animate
 						attributeName="d"
 						values="
@@ -137,6 +159,25 @@ templ LilGuy(id string) {
 				<path class="left-eye" d="M 17,17 L 17,17"></path>
 				<path class="right-eye" d="M 55,17 L 55,17"></path>
 				<path class="mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
+				<path class="sleep-mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24 C 39,21 33,21, 33,24" visibility="hidden">
+					<animateTransform
+						attributeName="transform"
+						type="translate"
+						dur="2s"
+						repeatCount="indefinite"
+						values="18 12.75;0 0;18 12.75"
+						begin="0s"
+					></animateTransform>
+					<animateTransform
+						attributeName="transform"
+						type="scale"
+						values="0.5;1;0.5"
+						dur="2s"
+						repeatCount="indefinite"
+						additive="sum"
+						begin="0s"
+					></animateTransform>
+				</path>
 			</svg>
 		</div>
 		<div class="coffee hidden row-start-1 col-start-1 h-4 self-end justify-self-start -scale-x-100 -translate-x-0.5 translate-y-1">

@@ -5,7 +5,6 @@ type Claims struct {
 	Surname     string
 	Firstname   string
 	ID          string
-	Fullname    string
 	PictureURL  string
 	CreatedAt   string
 	Permissions []string

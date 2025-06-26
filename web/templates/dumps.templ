@@ -1,0 +1,54 @@
+package templates
+
+import db "github.com/scottapow/scottapow/data"
+
+templ DumpsAuthenticatedPage(buildId string, user Claims, dumps []db.DumpsModel) {
+	@Layout(buildId, HeadData{
+		Title:       "Dumps",
+		Description: "Dump Counter",
+		Image:       "",
+	}, user) {
+		<article>
+			<h1 class="mb-4">Dumps</h1>
+			<p>Dumps:</p>
+			for _, dump := range dumps {
+				<span>{ dump.Description.String }</span>
+			}
+			<script defer>
+        document.addEventListener('DOMContentLoaded', () => {
+          let getDumpsBtn = document.getElementById('getdumps');
+          getDumpsBtn.addEventListener('click', getDumps);
+        })
+        async function getDumps() {
+          const response = await fetch('/api/dumps?dumpId=123');
+          const json = await response.json();
+          console.log(json);
+        }
+
+      </script>
+			<button id="getdumps">Get Dumps</button>
+			<form action="/api/dumps" method="POST" id="dumps-form">
+				<fieldset>
+					<legend>Start a Dump</legend>
+					<label for="desc">Description:</label>
+					<input type="text" id="dumps" name="desc" required/>
+					<button type="submit">Submit</button>
+				</fieldset>
+			</form>
+		</article>
+	}
+}
+
+templ DumpsUnAuthenticatedPage(buildId string, user Claims) {
+	@Layout(buildId, HeadData{
+		Title:       "Dumps",
+		Description: "Dump Counter",
+		Image:       "",
+	}, user) {
+		<article>
+			<h1 class="mb-4">Dumps</h1>
+			<p>This page is currently restriced for internal testing.</p>
+			<p>If you do have permission to access this page, <a href="/auth/google">login here</a></p>
+		</article>
+	}
+}
