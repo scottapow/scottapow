@@ -12,7 +12,7 @@ type HeadData struct {
 
 func getNavItems(user Claims) []components.NavItem {
 	var navItems = []components.NavItem{
-		// {Name: "Calories", URL: "/calories"},
+		{Name: "Dumps", URL: "/dumps"},
 	}
 	if user.ID != "" {
 		return append(
@@ -21,8 +21,7 @@ func getNavItems(user Claims) []components.NavItem {
 			components.NavItem{Name: "Logout", URL: "/logout/google"},
 		)
 	} else {
-		return navItems
-		// return append(navItems, components.NavItem{Name: "Login", URL: "/auth/google"})
+		return append(navItems, components.NavItem{Name: "Login", URL: "/auth/google"})
 	}
 }
 

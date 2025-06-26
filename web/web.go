@@ -5,6 +5,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
+	db "github.com/scottapow/scottapow/data"
 	"github.com/scottapow/scottapow/web/templates"
 )
 
@@ -25,6 +26,10 @@ func (render *Web) WriteUserTemplate(w http.ResponseWriter, r *http.Request, u t
 	templ.Handler(templates.UserPage(StaticId, u)).ServeHTTP(w, r)
 }
 
-func (render *Web) Calories(w http.ResponseWriter, r *http.Request, u templates.Claims) {
-	templ.Handler(templates.CaloriesPage(StaticId, u)).ServeHTTP(w, r)
+func (render *Web) DumpsAuthenticated(w http.ResponseWriter, r *http.Request, u templates.Claims, dumps []db.DumpsModel) {
+	templ.Handler(templates.DumpsAuthenticatedPage(StaticId, u, dumps)).ServeHTTP(w, r)
+}
+
+func (render *Web) DumpsUnauthenticated(w http.ResponseWriter, r *http.Request, u templates.Claims) {
+	templ.Handler(templates.DumpsUnAuthenticatedPage(StaticId, u)).ServeHTTP(w, r)
 }

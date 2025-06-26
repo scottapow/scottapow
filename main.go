@@ -1,15 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/joho/godotenv"
 	router "github.com/scottapow/scottapow/api"
 	"github.com/scottapow/scottapow/api/auth"
-	"github.com/scottapow/scottapow/api/calories"
+	"github.com/scottapow/scottapow/api/dumps"
 	db "github.com/scottapow/scottapow/data"
 	"github.com/scottapow/scottapow/web"
 )
@@ -20,11 +20,6 @@ func main() {
 	store, err := db.Connect()
 	if err != nil {
 		log.Fatal("Failed to start DB", err.Error())
-	}
-
-	err = store.Setup()
-	if err != nil {
-		log.Fatal("Failed to setup data store", err.Error())
 	}
 
 	web := web.NewWeb()
@@ -39,33 +34,38 @@ func main() {
 	s.Router.Handle("/web/public/", staticFilesHandler)
 
 	// API Handlers
-	caloriesService := calories.NewCaloriesService(a)
-	s.Router.HandleFunc("GET /api/calories", caloriesService.WithPermission(
-		"calories_read",
-		func(w http.ResponseWriter, r *http.Request) {
-			claims, err := a.GetUserClaims(r)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusForbidden)
-				return
-			}
-			entries, err := caloriesService.GetAllCaloriesData(r.Context(), claims.ID)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+	dumpsService := dumps.NewDumpsService(a)
+	// s.Router.HandleFunc("GET /api/dumps", dumpsService.WithPermission(
+	// 	"dumps_read",
+	// 	func(w http.ResponseWriter, r *http.Request) {
+	// 		// claims, err := a.GetUserClaims(r)
+	// 		// if err != nil {
+	// 		// 	http.Error(w, err.Error(), http.StatusForbidden)
+	// 		// 	return
+	// 		// }
 
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			err = json.NewEncoder(w).Encode(entries)
+	// 		dumpId := r.URL.Query().Get("dumpId")
+	// 		if dumpId != nil {
 
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		},
-	))
-	s.Router.HandleFunc("POST /api/calories", caloriesService.WithPermission(
-		"calories_write",
+	// 		}
+	// 		// entries, err := dumpsService.GetAllDumpsData(r.Context(), claims.ID)
+	// 		// if err != nil {
+	// 		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 		// 	return
+	// 		// }
+
+	// 		// w.Header().Set("Content-Type", "application/json")
+	// 		// w.WriteHeader(http.StatusOK)
+	// 		// err = json.NewEncoder(w).Encode(entries)
+
+	// 		// if err != nil {
+	// 		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 		// 	return
+	// 		// }
+	// 	},
+	// ))
+	s.Router.HandleFunc("POST /api/dumps", dumpsService.WithPermission(
+		"dumps_write",
 		func(w http.ResponseWriter, r *http.Request) {
 			err := r.ParseForm()
 			if err != nil {
@@ -73,9 +73,12 @@ func main() {
 				return
 			}
 
-			for v, i := range r.PostForm {
-				log.Println(v, i)
-			}
+			desc := r.FormValue("desc")
+
+			claims, err := a.GetUserClaims(r)
+			dumpId, err := dumpsService.AddDump(r.Context(), claims.ID, desc)
+
+			http.Redirect(w, r, r.Referer()+"?active="+dumpId, http.StatusTemporaryRedirect)
 		},
 	))
 
@@ -95,20 +98,17 @@ func main() {
 
 		web.WriteUserTemplate(w, r, claims)
 	})
-	s.Router.HandleFunc("/calories", caloriesService.WithPermission(
-		"calories_read",
-		func(w http.ResponseWriter, r *http.Request) {
-			claims, err := a.GetUserClaims(r)
-			if err != nil {
-				// w.Header().Set("WWW-Authenticate", "Basic realm=\"Dev"")
-				http.Error(w, err.Error(), http.StatusUnauthorized)
-				return
-			}
-			entries, err := caloriesService.GetAllCaloriesData(r.Context(), claims.ID)
-			fmt.Println(entries)
-			web.Calories(w, r, claims)
-		},
-	))
+	s.Router.HandleFunc("/dumps", func(w http.ResponseWriter, r *http.Request) {
+		claims, err := a.GetUserClaims(r)
+		if err != nil || !slices.Contains(claims.Permissions, "dumps_read") {
+			web.DumpsUnauthenticated(w, r, claims)
+		} else {
+			dumps, _ := dumpsService.GetAllDumps(r.Context(), claims.ID)
+			// TODO: handle error
+			fmt.Println("dumps", dumps)
+			web.DumpsAuthenticated(w, r, claims, dumps)
+		}
+	})
 	s.Router.HandleFunc("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.HandleLoginCallback(w, r)
 		// error responses are handled in HandleLoginCallback

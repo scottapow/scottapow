@@ -82,12 +82,12 @@ func (p *AuthProvider) GetToken(code string) (*oauth2.Token, error) {
 func (p *AuthProvider) GetUserDataFromGoogle(token *oauth2.Token) (*GoogleUser, error) {
 	client := p.Config.Client(context.Background(), token)
 	r, err := client.Get(oauthGoogleUrlAPI)
-	defer r.Body.Close()
 
 	if err != nil || r.StatusCode != 200 {
 		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
 
+	defer r.Body.Close()
 	return makeUser(r)
 }
 func makeUser(r *http.Response) (*GoogleUser, error) {
@@ -96,7 +96,6 @@ func makeUser(r *http.Response) (*GoogleUser, error) {
 		return nil, err
 	}
 
-	fmt.Println(string(data))
 	var u GoogleUser
 	err = json.Unmarshal(data, &u)
 
@@ -109,7 +108,6 @@ func makeUser(r *http.Response) (*GoogleUser, error) {
 
 func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	state, _ := RandString(32)
-	fmt.Println("state", state)
 	url := p.Config.AuthCodeURL(state, oauth2.AccessTypeOnline)
 	cookie := http.Cookie{
 		Name:     stateCookieName,
@@ -121,22 +119,17 @@ func (p *AuthProvider) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
-	fmt.Println("Set cookie:", cookie)
 	r.AddCookie(&cookie)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-	return
 }
 
 func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Request) (templates.Claims, error) {
 	oauthState, err := r.Cookie(stateCookieName)
 	if err != nil {
-		fmt.Println("Error retrieving cookie:", err)
 		http.Error(w, http.ErrNoCookie.Error(), http.StatusInternalServerError)
 		return templates.Claims{}, err
 	}
-	fmt.Println("OAuth state from cookie:", oauthState.Value)
 	if r.FormValue("state") != oauthState.Value {
-		fmt.Println("Invalid OAuth state")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return templates.Claims{}, errors.New("Invalid State")
 	}
@@ -174,7 +167,6 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	permissions, err := readPermissions(r.Context(), p.DB, user.Id.String())
-	fmt.Println(permissions)
 
 	claims := &jwt.MapClaims{
 		"Email":       user.Email.String,
@@ -209,7 +201,6 @@ func (p *AuthProvider) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 		Firstname:   user.Firstname.String,
 		Surname:     user.Surname.String,
 		ID:          user.Id.String(),
-		Fullname:    user.Firstname.String + " " + user.Surname.String,
 		PictureURL:  user.AvatarURL.String,
 		CreatedAt:   user.Created_at.Time.Format(time.DateTime),
 		Permissions: permissions,
@@ -252,7 +243,6 @@ func (p *AuthProvider) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	return
 }
 
 func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) {
@@ -274,7 +264,7 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) 
 	claims := session.Values["claims"].(string)
 	accessToken := session.Values["gat"].(string)
 
-	if time.Now().Unix() > expiryEpoc || &accessToken == nil {
+	if time.Now().Unix() > expiryEpoc || accessToken == "" {
 		return templateClaims, errors.New("Access Expired")
 	}
 
@@ -289,19 +279,25 @@ func (p *AuthProvider) GetUserClaims(r *http.Request) (templates.Claims, error) 
 	}
 
 	c, ok := token.Claims.(jwt.MapClaims)
-	if ok {
-		templateClaims.Email = c["Email"].(string)
-		templateClaims.Firstname = c["Firstname"].(string)
-		templateClaims.Surname = c["Surname"].(string)
-		templateClaims.ID = c["ID"].(string)
-		templateClaims.Fullname = c["Firstname"].(string) + " " + c["Surname"].(string)
-		templateClaims.PictureURL = c["PictureURL"].(string)
-		templateClaims.CreatedAt = c["CreatedAt"].(string)
-		// templateClaims.Permissions = c["Permissions"].([]string)
-		return templateClaims, nil
-	} else {
+	if !ok {
 		return templateClaims, errors.New("Invalid claims format")
 	}
+
+	templateClaims.Email, ok = c["Email"].(string)
+	templateClaims.Firstname, ok = c["Firstname"].(string)
+	templateClaims.Surname, ok = c["Surname"].(string)
+	templateClaims.ID, ok = c["ID"].(string)
+	templateClaims.PictureURL, ok = c["PictureURL"].(string)
+	templateClaims.CreatedAt, ok = c["CreatedAt"].(string)
+	permissions, ok := c["Permissions"].([]interface{})
+	if ok && len(permissions) > 0 {
+		templateClaims.Permissions = make([]string, len(permissions))
+		for i, v := range permissions {
+			templateClaims.Permissions[i] = v.(string)
+		}
+	}
+
+	return templateClaims, nil
 }
 
 // query for the user by match with oauth id and email
@@ -320,9 +316,14 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 	`, gu.ID, gu.Email).Scan(&u.Id, &u.Email, &u.Created_at, &u.Updated_at, &u.Login_at, &u.Firstname, &u.Surname, &u.AvatarURL, &u.Oauth_provider_id)
 
 	if err != nil {
-		// not returning here because it could be that the user doesn't exist yet
-		// TOOO: handle a case where the user exists but there was another error in the query
-		fmt.Println(err)
+		tx.Rollback(ctx)
+		// no user exist. Not creating new users now
+		// TODO: add a check against email whitelist
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.New("User is not allowed")
+		} else {
+			return nil, fmt.Errorf("Error reading user: %w", err)
+		}
 	}
 
 	if u.Id.Valid && u.Login_at.Valid {
@@ -330,7 +331,6 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(u)
 		return u, nil
 	}
 
@@ -368,7 +368,7 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 
 	r, err := tx.Query(ctx, `
 		INSERT INTO permissions (id, user_id, permission)
-		VALUES (gen_random_uuid(), $1, 'calories_read'), (gen_random_uuid(), $1, 'calories_write');
+		VALUES (gen_random_uuid(), $1, 'dumps_read'), (gen_random_uuid(), $1, 'dumps_write');
 	`, u.Id.String())
 	r.Close()
 
@@ -387,6 +387,5 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 		return nil, err
 	}
 
-	fmt.Println(u)
 	return u, nil
 }

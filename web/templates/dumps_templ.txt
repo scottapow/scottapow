@@ -1,0 +1,5 @@
+<article><h1 class=\"mb-4\">Dumps</h1><p>Dumps:</p>
+<span>
+</span>
+<script defer>\n        document.addEventListener('DOMContentLoaded', () => {\n          let getDumpsBtn = document.getElementById('getdumps');\n          getDumpsBtn.addEventListener('click', getDumps);\n        })\n        async function getDumps() {\n          const response = await fetch('/api/dumps?dumpId=123');\n          const json = await response.json();\n          console.log(json);\n        }\n\n      </script><button id=\"getdumps\">Get Dumps</button><form action=\"/api/dumps\" method=\"POST\" id=\"dumps-form\"><fieldset><legend>Start a Dump</legend> <label for=\"desc\">Description:</label> <input type=\"text\" id=\"dumps\" name=\"desc\" required> <button type=\"submit\">Submit</button></fieldset></form></article>
+<article><h1 class=\"mb-4\">Dumps</h1><p>This page is currently restriced for internal testing.</p><p>If you do have permission to access this page, <a href=\"/auth/google\">login here</a></p></article>

@@ -28,16 +28,17 @@ type PermissionModel struct {
 	Created_at pgtype.Timestamp
 }
 
-type CaloriesModel struct {
-	Id         pgtype.UUID
-	User_id    pgtype.UUID
-	Created_at pgtype.Timestamp
-	Updated_at pgtype.Timestamp
+type DumpsModel struct {
+	Id          pgtype.UUID
+	User_id     pgtype.UUID
+	Created_at  pgtype.Timestamp
+	Updated_at  pgtype.Timestamp
+	Description pgtype.Text
 }
 
-type CalorieEntriesModal struct {
+type DumpEntriesModal struct {
 	Id          pgtype.UUID
-	Calories_id pgtype.UUID
+	Dumps_id    pgtype.UUID
 	Amount      pgtype.Int2
-	Consumed_at pgtype.Timestamp
+	Occurred_at pgtype.Timestamptz
 }
