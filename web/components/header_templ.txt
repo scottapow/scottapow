@@ -1,7 +1,0 @@
-<header class=\"px-4 py-2 bg-slate-100 dark:bg-slate-900 \"><nav><ul class=\"flex list-none gap-4 justify-end\"><li class=\"mr-auto\"><a class=\"text-slate-9bg-slate-900 dark:text-white hover:underline h-8 w-full block\" href=\"
-\" aria-label=\"Home\">
-</a></li>
-<li class=\"py-1\"><a class=\"text-slate-900 dark:text-white hover:underline\" href=\"
-\">
-</a></li>
-</ul></nav></header>

@@ -1,5 +1,0 @@
-<h1>Welcome, 
- 
-</h1><p><img src=\"
-\"></p><p><b>Email</b>: 
-</p>
