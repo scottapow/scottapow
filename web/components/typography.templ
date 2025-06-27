@@ -20,8 +20,10 @@ templ LeadParagraph(content string) {
 	<span class="text-lg leading-8">{ content }</span>
 }
 
-templ TextLink(content string) {
-	<span class="text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2">{ content }</span>
+templ TextLink() {
+	<span class="text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2">
+		{ children... }
+	</span>
 }
 
 templ SmallText(content string) {

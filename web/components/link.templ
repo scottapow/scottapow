@@ -1,0 +1,9 @@
+package components
+
+templ Link(href string) {
+	<a href={ templ.SafeURL(href) }>
+		@TextLink() {
+			{ children... }
+		}
+	</a>
+}

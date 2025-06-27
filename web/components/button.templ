@@ -1,0 +1,39 @@
+package components
+
+import twmerge "github.com/Oudwins/tailwind-merge-go"
+
+type Variant string
+
+const (
+	VariantPrimary   Variant = "primary"
+	VariantSecondary Variant = "secondary"
+)
+
+type ButtonOptions struct {
+	Variant Variant
+}
+
+templ Button(opts ButtonOptions, attrs templ.Attributes) {
+	{{	// allow for merging a passed class
+	c := variantStyle(opts.Variant)
+	if passedClass, ok := attrs["class"].(string); ok {
+		c = twmerge.Merge(variantStyle(opts.Variant), passedClass)
+	}
+	}}
+	<button { attrs... } class={ c }>
+		{ children... }
+	</button>
+}
+
+func variantStyle(v Variant) string {
+	var class = "py-2 px-1"
+	switch v {
+	case VariantPrimary:
+		class = class + " bg-amber-700 text-white dark:text-amber-700 dark:bg-white"
+	case VariantSecondary:
+		class = class + " "
+	default:
+		class = class + " "
+	}
+	return class
+}

@@ -1,5 +1,7 @@
 package templates
 
+import "github.com/scottapow/scottapow/web/components"
+
 import db "github.com/scottapow/scottapow/data"
 
 templ DumpsAuthenticatedPage(buildId string, user Claims, dumps []db.DumpsModel) {
@@ -8,31 +10,25 @@ templ DumpsAuthenticatedPage(buildId string, user Claims, dumps []db.DumpsModel)
 		Description: "Dump Counter",
 		Image:       "",
 	}, user) {
-		<article>
-			<h1 class="mb-4">Dumps</h1>
-			<p>Dumps:</p>
-			for _, dump := range dumps {
-				<span>{ dump.Description.String }</span>
-			}
-			<script defer>
-        document.addEventListener('DOMContentLoaded', () => {
-          let getDumpsBtn = document.getElementById('getdumps');
-          getDumpsBtn.addEventListener('click', getDumps);
-        })
-        async function getDumps() {
-          const response = await fetch('/api/dumps?dumpId=123');
-          const json = await response.json();
-          console.log(json);
-        }
-
-      </script>
-			<button id="getdumps">Get Dumps</button>
+		<article class="py-6 px-4">
+			<h1 class="mb-4 font-bold text-4xl">Dumps</h1>
+			<section class="mb-4">
+				for _, dump := range dumps {
+					<div>
+						@components.Link("/dumps/" + dump.Id.String()) {
+							{ dump.Description.String }
+						}
+					</div>
+				}
+			</section>
 			<form action="/api/dumps" method="POST" id="dumps-form">
 				<fieldset>
-					<legend>Start a Dump</legend>
+					<legend class="font-bold mb-2">Start a Dump</legend>
 					<label for="desc">Description:</label>
 					<input type="text" id="dumps" name="desc" required/>
-					<button type="submit">Submit</button>
+					@components.Button(components.ButtonOptions{Variant: components.VariantPrimary}, templ.Attributes{"type": "submit"}) {
+						Submit
+					}
 				</fieldset>
 			</form>
 		</article>
