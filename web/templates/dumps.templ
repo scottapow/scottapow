@@ -11,7 +11,11 @@ templ DumpsAuthenticatedPage(buildId string, user Claims, dumps []db.DumpsModel)
 		Image:       "",
 	}, user) {
 		<article class="py-6 px-4">
-			<h1 class="mb-4 font-bold text-4xl">Dumps</h1>
+			<h1 class="mb-4 font-bold text-4xl text-french-violet-500 dark:text-french-violet-300">
+				@components.Heading1() {
+					Dumps
+				}
+			</h1>
 			<section class="mb-4">
 				for _, dump := range dumps {
 					<div>
@@ -41,10 +45,20 @@ templ DumpsUnAuthenticatedPage(buildId string, user Claims) {
 		Description: "Dump Counter",
 		Image:       "",
 	}, user) {
-		<article>
-			<h1 class="mb-4">Dumps</h1>
+		<article class="py-6 px-4">
+			<h1 class="mb-4 font-bold text-4xl text-french-violet-500 dark:text-french-violet-300">
+				@components.Heading1() {
+					Dumps
+				}
+			</h1>
 			<p>This page is currently restriced for internal testing.</p>
-			<p>If you do have permission to access this page, <a href="/auth/google">login here</a></p>
+			<p>
+				If you do have permission to access this page, 
+				@components.Link("/auth/google") {
+					login here
+				}
+				.
+			</p>
 		</article>
 	}
 }

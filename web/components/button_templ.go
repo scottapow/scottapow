@@ -90,14 +90,14 @@ func Button(opts ButtonOptions, attrs templ.Attributes) templ.Component {
 }
 
 func variantStyle(v Variant) string {
-	var class = "py-2 px-1"
+	var class = " py-2 px-3 rounded-lg"
 	switch v {
 	case VariantPrimary:
-		class = class + " bg-amber-700 text-white dark:text-amber-700 dark:bg-white"
+		class = "font-bold text-french-violet-100 bg-french-violet-500 dark:text-french-violet-500 dark:bg-french-violet-100" + class
 	case VariantSecondary:
-		class = class + " "
+		class = " " + class
 	default:
-		class = class + " "
+		class = " " + class
 	}
 	return class
 }

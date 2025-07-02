@@ -28,7 +28,7 @@ func getNavItems(user Claims) []components.NavItem {
 templ Layout(buildId string, head HeadData, user Claims) {
 	{{ navItems := getNavItems(user) }}
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" class="h-full">
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -40,9 +40,9 @@ templ Layout(buildId string, head HeadData, user Claims) {
 			<link rel="icon" href="/web/public/logo.svg" type="image/svg+xml"/>
 			<link href={ "/web/public/output.css?v=" + buildId } rel="stylesheet"/>
 		</head>
-		<body>
+		<body class="bg-white dark:bg-french-violet-900 h-full">
 			@components.Header(navItems)
-			<main>
+			<main class="text-french-violet-900 dark:text-aquamarine-100">
 				{ children... }
 			</main>
 		</body>

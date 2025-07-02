@@ -34,7 +34,7 @@ func Header(navItems []NavItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"px-4 py-2 bg-slate-100 dark:bg-slate-900 \"><nav><ul class=\"flex list-none gap-4 justify-end\"><li class=\"mr-auto\"><a class=\"text-slate-9bg-slate-900 dark:text-white hover:underline h-8 w-full block\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"px-4 py-2 bg-aquamarine-500 dark:bg-french-violet-900 dark:border-aquamarine-500 border-b-[1px]\"><nav><ul class=\"flex list-none gap-4 justify-end\"><li class=\"mr-auto\"><a class=\"dark:text-white hover:underline h-8 w-full block\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
