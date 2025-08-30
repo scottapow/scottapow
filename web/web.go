@@ -33,3 +33,7 @@ func (render *Web) DumpsAuthenticated(w http.ResponseWriter, r *http.Request, u 
 func (render *Web) DumpsUnauthenticated(w http.ResponseWriter, r *http.Request, u templates.Claims) {
 	templ.Handler(templates.DumpsUnAuthenticatedPage(StaticId, u)).ServeHTTP(w, r)
 }
+
+func (render *Web) Dump(w http.ResponseWriter, r *http.Request, u templates.Claims, d db.DumpsModel) {
+	templ.Handler(templates.DumpPage(StaticId, u, d)).ServeHTTP(w, r)
+}

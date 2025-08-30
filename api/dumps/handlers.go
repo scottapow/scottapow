@@ -2,11 +2,11 @@ package dumps
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"slices"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/scottapow/scottapow/api/auth"
 	db "github.com/scottapow/scottapow/data"
 )
@@ -48,25 +48,58 @@ func (s *DumpsService) GetAllDumps(ctx context.Context, userId string) ([]db.Dum
 	return dumps, nil
 }
 
-func (s *DumpsService) GetAllDumpsData(ctx context.Context, userId string) ([]db.DumpEntriesModal, error) {
-	tx, err := s.Auth.DB.BeginTx(ctx, pgx.TxOptions{})
-	if err != nil {
-		return nil, err
+func (s *DumpsService) GetDump(ctx context.Context, userId string, dumpId string) (db.DumpsModel, error) {
+	var dump = db.DumpsModel{}
+
+	if dumpId == "" {
+		return dump, errors.New("No dumpId provided")
 	}
 
-	var id pgtype.UUID
-	err = tx.QueryRow(ctx, `
-		SELECT id FROM dumps WHERE user_id = $1;
-	`, userId).Scan(&id)
+	tx, err := s.Auth.DB.Begin(ctx)
+	if err != nil {
+		return dump, err
+	}
 
-	if err != nil || id.Valid == false {
+	err = tx.QueryRow(ctx, `
+		SELECT id, user_id, created_at, updated_at, description FROM dumps WHERE user_id = $1;
+	`, userId).Scan(&dump.Id, &dump.User_id, &dump.Created_at, &dump.Updated_at, &dump.Description)
+
+	if err != nil {
+		return dump, err
+	}
+
+	return dump, nil
+}
+
+func (s *DumpsService) GetDumpsData(ctx context.Context, dumpId string, userId string) ([]db.DumpEntriesModal, error) {
+	if dumpId == "" {
+		return nil, errors.New("No dumpId provided")
+	}
+
+	tx, err := s.Auth.DB.BeginTx(ctx, pgx.TxOptions{})
+
+	if err != nil {
 		tx.Rollback(ctx)
 		return nil, err
 	}
 
+	// check if the current user is the creator of the dump
+	// only creators are currently allowed access
+	tag, err := tx.Exec(ctx, `SELECT EXISTS(SELECT 1 from dumps WHERE user_id = $1 AND id = $2)`, userId, dumpId)
+
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	if tag.RowsAffected() == 0 {
+		tx.Rollback(ctx)
+		return nil, errors.New("This dump cannot be accessed by this user")
+	}
+
 	rows, err := tx.Query(ctx, `
 		SELECT id, dumps_id, amount, occurred_at FROM dump_entries WHERE dumps_id = $1;
-	`, id.String())
+	`, dumpId)
 
 	if err != nil {
 		tx.Rollback(ctx)

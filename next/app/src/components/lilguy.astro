@@ -1,0 +1,211 @@
+---
+import Coffee from "./coffee.astro"
+---
+<div class:list={['wrapper', 'lilguy']}>
+  <div class="inner">
+    <svg
+      viewBox="0 0 72 62"
+      xmlns="http://www.w3.org/2000/svg"
+      stroke-width="6px"
+      fill="none"
+      stroke-linecap="round"
+      stroke="currentColor"
+      height="100%"
+    >
+      <title>Stylized S P, the initials of Scott Powell</title>
+      <path
+        d="
+          M 41,59
+          L 41,45
+          Q 41,31 55,31
+          Q 69,31 69,17
+          Q 69,3 55,3
+          L 17,3
+          Q 3,3 3,17
+          Q 3,31 17,31
+          Q 31,31 31,45
+          Q 31,59 17,59
+      "
+      ></path>
+      <path class="hand" d="M 17,59 Q 10,59 3,59"></path>
+      <path class="waving-hand" d="M 17,59 Q 10,59 3,59" visibility="hidden">
+        <animate
+          attributeName="d"
+          values="
+            M 17,59 Q 10,59 3,59;
+            M 17,59 Q 10,59 3,59;
+            M 17,59 Q 10,59 3,54;
+            M 17,59 Q 10,59 3,52;
+            M 17,59 Q 10,59 3,54;
+            M 17,59 Q 10,59 3,52;
+            M 17,59 Q 10,59 3,54;
+            M 17,59 Q 10,59 3,59"
+          keyTimes="0;0.90;0.91;0.94;0.95;0.96;0.97;1"
+          dur="18s"
+          repeatCount="indefinite"
+          restart="whenNotActive"
+        ></animate>
+      </path>
+      <path class="left-eye" d="M 17,17 L 17,17"></path>
+      <path class="right-eye" d="M 55,17 L 55,17"></path>
+      <path class="mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24"></path>
+      <path class="sleep-mouth" stroke-width="3px" d="M 33,24 C 33,27 39,27 39,24 C 39,21 33,21, 33,24" visibility="hidden">
+        <animateTransform
+          attributeName="transform"
+          type="translate"
+          dur="2s"
+          repeatCount="indefinite"
+          values="18 12.75;0 0;18 12.75"
+          begin="0s"
+        ></animateTransform>
+        <animateTransform
+          attributeName="transform"
+          type="scale"
+          values="0.5;1;0.5"
+          dur="2s"
+          repeatCount="indefinite"
+          additive="sum"
+          begin="0s"
+        ></animateTransform>
+      </path>
+    </svg>
+  </div>
+  <div class="coffee">
+    <Coffee />
+  </div>
+</div>
+
+<script>
+  let lilguys = document.querySelectorAll('.lilguy');
+  for (let i = 0; i < lilguys.length; i++) {
+    const lg = lilguys[i] as HTMLElement;
+    initLilGuy(lg);
+  }
+
+  function initLilGuy(lilguy: HTMLElement) {
+    if (!lilguy) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      (lilguy.querySelectorAll('svg') ?? []).forEach((svg: SVGSVGElement) => {
+        svg.pauseAnimations();
+      });
+    }
+
+    let leftEye = lilguy.querySelector(".left-eye")!;
+    let rightEye = lilguy.querySelector(".right-eye")!;
+    let hand = lilguy.querySelector(".hand")!;
+    let wavingHand = lilguy.querySelector(".waving-hand")!;
+    let mouth = lilguy.querySelector(".mouth")!;
+    let sleepMouth = lilguy.querySelector(".sleep-mouth")!;
+
+    addTimeBasedFeatures();
+    setInterval(addTimeBasedFeatures, 1000 * 60 * 60 /* every hour */);
+
+    function addTimeBasedFeatures() {
+      let now = new Date();
+      let hours = now.getHours();
+      if (hours >= 5 && hours < 11) {
+      // morning
+        removeSquint([leftEye, rightEye]);
+        addBlink([leftEye, rightEye]);
+        lilguy.querySelector(".coffee")!.classList.remove("hidden");
+        // holding coffee cup, so waving is awkward
+        // TODO: check the play state and if it is not playing, add the fill="freeze" attribute
+        wavingHand.setAttribute('visibility', 'visible');
+        hand.setAttribute('visibility', 'hidden');
+        sleepMouth.setAttribute('visibility', 'hidden');
+        mouth.setAttribute('visibility', 'visible');
+      } else {
+        lilguy.querySelector(".coffee")!.classList.add("hidden");
+      }
+      if (hours >= 11 && hours < 22) {
+        // afternoon
+        removeSquint([leftEye, rightEye]);
+        addBlink([leftEye, rightEye]);
+        wavingHand.setAttribute('visibility', 'visible');
+        hand.setAttribute('visibility', 'hidden');
+        sleepMouth.setAttribute('visibility', 'hidden');
+        mouth.setAttribute('visibility', 'visible');
+      }
+      if (hours >= 22 || hours < 5) {
+        // night
+        removeBlink([leftEye, rightEye]);
+        addSquint([leftEye, rightEye]);
+        // sleeping, so waving is awkward
+        wavingHand.setAttribute('visibility', 'hidden');
+        hand.setAttribute('visibility', 'visible');
+        sleepMouth.setAttribute('visibility', 'visible');
+        mouth.setAttribute('visibility', 'hidden');
+      }
+    };
+  }
+
+  const removeBlink = (els: Element[]) => els.forEach(el => el.classList.remove('blink'));
+  const addBlink = (els: Element[]) => els.forEach(el => el.classList.add('blink'));
+  const removeSquint = (els: Element[]) => els.forEach(el => el.classList.remove('squint'));
+  const addSquint = (els: Element[]) => els.forEach(el => el.classList.add('squint'));
+</script>
+
+<style>
+  .wrapper {
+    display: grid;
+    place-content: center;
+  }
+
+  .inner {
+    grid-row-start: 1;
+    grid-column-start: 1;
+    height: 2rem;
+  }
+
+  @keyframes eye-blink {
+    0% {
+      transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+    }
+    1% {
+      transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+    }
+    2% {
+      transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+    }
+    100% {
+      transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+    }
+  }
+
+  .left-eye {
+    --eye-originx: 17px;
+    --eye-originy: 17px;
+  }
+
+  .right-eye {
+    --eye-originx: 55px;
+    --eye-originy: 17px;
+  }
+
+  .squint {
+    transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1))
+  }
+
+  .blink {
+    animation-name: eye-blink;
+    animation-duration: 10s;
+    animation-iteration-count: infinite;
+  }
+
+  .coffee {
+    display: none;
+    grid-row-start: 1;
+    grid-column-start: 1;
+    height: 1rem;
+    align-self: flex-end;
+    justify-self: start;
+    transform: scaleX(-1) translateX(-0.125rem) translateY(0.25rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .left-eye, .right-eye {
+      animation: none;
+    }
+  }
+</style>

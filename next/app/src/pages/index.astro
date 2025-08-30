@@ -1,0 +1,29 @@
+---
+import Typography from '../components/typography.astro';
+import Layout from '../layouts/Layout.astro';
+
+---
+<Layout title="Scott Powell - Home" description=''>
+  <article>
+    <header>
+      <h1>
+        <Typography variant='h1' color="violet">Scott Powell</Typography>
+      </h1>
+      <h2>
+        <Typography variant='h3' color="aquamarine">Senior Software Engineer, Front End Focus</Typography>
+      </h2>
+      <!-- add a scale showing where on the spectrum of front end to back end you are allow it to be slidable -->
+    </header>
+    <section></section>
+  </article>
+</Layout>
+
+<style>
+  header {
+    padding-block: 24px;
+    padding-inline: 16px;
+  }
+  h1 {
+    margin-block-end: 16px;
+  }
+</style>

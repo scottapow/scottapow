@@ -311,9 +311,11 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 	var u = &db.UserModel{}
 
 	// Query for the user
-	err = tx.QueryRow(ctx, `
+	row := tx.QueryRow(ctx, `
 		SELECT id, email, created_at, updated_at, login_at, firstname, surname, avatar_url, oauth_provider_id FROM users WHERE oauth_provider_id=$1 AND email=$2
-	`, gu.ID, gu.Email).Scan(&u.Id, &u.Email, &u.Created_at, &u.Updated_at, &u.Login_at, &u.Firstname, &u.Surname, &u.AvatarURL, &u.Oauth_provider_id)
+	`, gu.ID, gu.Email)
+	row.Scan()
+	.Scan(&pgu.Id, &pgu.Email, &pgu.Created_at, &pgu.Updated_at, &pgu.Login_at, &pgu.Firstname, &pgu.Surname, &pgu.AvatarURL, &pgu.Oauth_provider_id)
 
 	if err != nil {
 		tx.Rollback(ctx)
@@ -326,12 +328,14 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 		}
 	}
 
-	if u.Id.Valid && u.Login_at.Valid {
+	if pgu.Id.Valid && pgu.Login_at.Valid {
 		err = tx.Commit(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return u, nil
+		
+		u := createUserFromDB(*pgu)
+		return &u, nil
 	}
 
 	// new user
@@ -359,7 +363,7 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 		VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, email, created_at, updated_at, login_at, firstname, surname, avatar_url, oauth_provider_id;
 	`, hashedPass, gu.Email, gu.Firstname, gu.Surname, gu.PictureURL, "google", gu.ID,
-	).Scan(&u.Id, &u.Email, &u.Created_at, &u.Updated_at, &u.Login_at, &u.Firstname, &u.Surname, &u.AvatarURL, &u.Oauth_provider_id)
+	).Scan(&pgu.Id, &pgu.Email, &pgu.Created_at, &pgu.Updated_at, &pgu.Login_at, &pgu.Firstname, &pgu.Surname, &pgu.AvatarURL, &pgu.Oauth_provider_id)
 
 	if err != nil {
 		tx.Rollback(ctx)
@@ -369,7 +373,7 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 	r, err := tx.Query(ctx, `
 		INSERT INTO permissions (id, user_id, permission)
 		VALUES (gen_random_uuid(), $1, 'dumps_read'), (gen_random_uuid(), $1, 'dumps_write');
-	`, u.Id.String())
+	`, Id.String())
 	r.Close()
 
 	if err != nil {
@@ -388,4 +392,19 @@ func readOrCreateUser(ctx context.Context, conn *pgxpool.Pool, gu *GoogleUser) (
 	}
 
 	return u, nil
+}
+
+func createUserFromDB(pgu db.PGUserModel) db.UserModel {
+	u := db.UserModel{
+		Id: pgu.Id.String(),
+		Email: pgu.Email.String,
+		Created_at: pgu.Created_at.Time,
+		Updated_at: pgu.Updated_at.Time,
+		Login_at: pgu.Login_at.Time,
+		Firstname: pgu.Firstname.String,
+		Surname: pgu.Surname.String,
+		AvatarURL: pgu.AvatarURL.String,
+		Oauth_provider_id: pgu.Oauth_provider_id.String,
+	}
+	return u
 }

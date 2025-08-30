@@ -1,0 +1,26 @@
+<svg viewBox="0 0 72 62" xmlns="http://www.w3.org/2000/svg" stroke-width="6px" fill="none" stroke-linecap="round">
+  <style>
+    path {
+      stroke: black;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      path {
+        stroke: white;
+      }
+    }
+  </style>
+  <path stroke="black" d="
+      M 41,59
+      L 41,45
+      Q 41,31 55,31
+      Q 69,31 69,17
+      Q 69,3 55,3
+      L 17,3
+      Q 3,3 3,17
+      Q 3,31 17,31
+      Q 31,31 31,45
+      Q 31,59 17,59
+      L 3,59
+   " />
+</svg>

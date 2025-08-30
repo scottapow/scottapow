@@ -1,0 +1,70 @@
+---
+import type { Claims } from '../features/user/types';
+import Header, { type NavItem } from '../components/header.astro';
+import '../index.css';
+
+type Props = {
+	title: string;
+	description: string;
+	image?: string;
+}
+
+function getNavItems(user: Claims): NavItem[] {
+	var navItems: NavItem[] = [
+		{name: "Dumps", url: "/dumps"},
+  ]
+	if (user.id) {
+    navItems.push(
+      {name: "User", url: "/user"},
+			{name: "Logout", url: "/logout/google"},
+		)
+	} else {
+    navItems.push(
+      {name: "Login", url: "/auth/google"}
+    )
+	}
+
+  return navItems;
+}
+
+const { title, description, image } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{title}</title>
+    <meta name="description" content={description}/>
+    <meta property="og:title" content={title}/>
+    <meta property="og:description" content={description}/>
+    <meta property="og:image" content={image}/>
+    <link rel="icon" href="/public/logo.svg" type="image/svg+xml"/>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <Header navItems={[]}/>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  html { 
+    height: 100%;
+  }
+  body {
+    height: 100%;
+    background-color: white;
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--color-french-violet-900);
+    }
+  }
+  main {
+    color: var(--color-french-violet-900);
+    @media (prefers-color-scheme: dark) {
+      color: var(--color-aquamarine-100);
+    }
+  }
+</style>

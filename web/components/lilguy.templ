@@ -1,115 +1,122 @@
 package components
 
+var doOnce = templ.NewOnceHandle()
+var doOnce2 = templ.NewOnceHandle()
+
 templ LilGuy(id string) {
-	<script>
-    /** @param {string} id */
-    function initLilGuy(id) {
-      let lilguy = document.getElementById(id);
+	@doOnce.Once() {
+		<script>
+            /** @param {string} id */
+            function initLilGuy(id) {
+            let lilguy = document.getElementById(id);
 
-      if (!lilguy) return;
+            if (!lilguy) return;
 
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        (lilguy.querySelectorAll('svg') ?? []).forEach(/** @param {SVGSVGElement} svg */(svg) => {
-          svg.pauseAnimations();
-        });
-      }
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                (lilguy.querySelectorAll('svg') ?? []).forEach(/** @param {SVGSVGElement} svg */(svg) => {
+                svg.pauseAnimations();
+                });
+            }
 
-      let leftEye = lilguy.querySelector(".left-eye");
-      let rightEye = lilguy.querySelector(".right-eye");
-      let hand = lilguy.querySelector(".hand");
-      let wavingHand = lilguy.querySelector(".waving-hand");
-      let mouth = lilguy.querySelector(".mouth");
-      let sleepMouth = lilguy.querySelector(".sleep-mouth");
+            let leftEye = lilguy.querySelector(".left-eye");
+            let rightEye = lilguy.querySelector(".right-eye");
+            let hand = lilguy.querySelector(".hand");
+            let wavingHand = lilguy.querySelector(".waving-hand");
+            let mouth = lilguy.querySelector(".mouth");
+            let sleepMouth = lilguy.querySelector(".sleep-mouth");
 
-      addTimeBasedFeatures();
-      setInterval(addTimeBasedFeatures, 1000 * 60 * 60 /* every hour */);
+            addTimeBasedFeatures();
+            setInterval(addTimeBasedFeatures, 1000 * 60 * 60 /* every hour */);
 
-      function addTimeBasedFeatures() {
-        let now = new Date();
-        let hours = now.getHours();
-        if (hours >= 5 && hours < 11) {
-          // morning
-          removeSquint([leftEye, rightEye]);
-          addBlink([leftEye, rightEye]);
-          lilguy.querySelector(".coffee").classList.remove("hidden");
-          // holding coffee cup, so waving is awkward
-          // TODO: check the play state and if it is not playing, add the fill="freeze" attribute
-          wavingHand.setAttribute('visibility', 'visible');
-          hand.setAttribute('visibility', 'hidden');
-          sleepMouth.setAttribute('visibility', 'hidden');
-          mouth.setAttribute('visibility', 'visible');
-        } else {
-          lilguy.querySelector(".coffee").classList.add("hidden");
-        }
-        if (hours >= 11 && hours < 22) {
-          // afternoon
-          removeSquint([leftEye, rightEye]);
-          addBlink([leftEye, rightEye]);
-          wavingHand.setAttribute('visibility', 'visible');
-          hand.setAttribute('visibility', 'hidden');
-          sleepMouth.setAttribute('visibility', 'hidden');
-          mouth.setAttribute('visibility', 'visible');
-        }
-        if (hours >= 22 || hours < 5) {
-          // night
-          removeBlink([leftEye, rightEye]);
-          addSquint([leftEye, rightEye]);
-          // sleeping, so waving is awkward
-          wavingHand.setAttribute('visibility', 'hidden');
-          hand.setAttribute('visibility', 'visible');
-          sleepMouth.setAttribute('visibility', 'visible');
-          mouth.setAttribute('visibility', 'hidden');
-        }
-      };
-    }
+            function addTimeBasedFeatures() {
+                let now = new Date();
+                let hours = now.getHours();
+                if (hours >= 5 && hours < 11) {
+                // morning
+                removeSquint([leftEye, rightEye]);
+                addBlink([leftEye, rightEye]);
+                lilguy.querySelector(".coffee").classList.remove("hidden");
+                // holding coffee cup, so waving is awkward
+                // TODO: check the play state and if it is not playing, add the fill="freeze" attribute
+                wavingHand.setAttribute('visibility', 'visible');
+                hand.setAttribute('visibility', 'hidden');
+                sleepMouth.setAttribute('visibility', 'hidden');
+                mouth.setAttribute('visibility', 'visible');
+                } else {
+                lilguy.querySelector(".coffee").classList.add("hidden");
+                }
+                if (hours >= 11 && hours < 22) {
+                // afternoon
+                removeSquint([leftEye, rightEye]);
+                addBlink([leftEye, rightEye]);
+                wavingHand.setAttribute('visibility', 'visible');
+                hand.setAttribute('visibility', 'hidden');
+                sleepMouth.setAttribute('visibility', 'hidden');
+                mouth.setAttribute('visibility', 'visible');
+                }
+                if (hours >= 22 || hours < 5) {
+                // night
+                removeBlink([leftEye, rightEye]);
+                addSquint([leftEye, rightEye]);
+                // sleeping, so waving is awkward
+                wavingHand.setAttribute('visibility', 'hidden');
+                hand.setAttribute('visibility', 'visible');
+                sleepMouth.setAttribute('visibility', 'visible');
+                mouth.setAttribute('visibility', 'hidden');
+                }
+            };
+            }
 
-    /** @param {Element[]} els */
-    const removeBlink = (els) => els.forEach(el => el.classList.remove('blink'));
-    /** @param {Element[]} els */
-    const addBlink = (els) => els.forEach(el => el.classList.add('blink'));
-    /** @param {Element[]} els */
-    const removeSquint = (els) => els.forEach(el => el.classList.remove('squint'));
-    /** @param {Element[]} els */
-    const addSquint = (els) => els.forEach(el => el.classList.add('squint'));
-  </script>
-	<style>
-    @keyframes eye-blink {
-      0% {
-        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
-      }
-      1% {
-        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
-      }
-      2% {
-        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
-      }
-      100% {
-        transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
-      }
-    }
+            /** @param {Element[]} els */
+            const removeBlink = (els) => els.forEach(el => el.classList.remove('blink'));
+            /** @param {Element[]} els */
+            const addBlink = (els) => els.forEach(el => el.classList.add('blink'));
+            /** @param {Element[]} els */
+            const removeSquint = (els) => els.forEach(el => el.classList.remove('squint'));
+            /** @param {Element[]} els */
+            const addSquint = (els) => els.forEach(el => el.classList.add('squint'));
+        </script>
+	}
+	@doOnce2.Once() {
+		<style>
+            @keyframes eye-blink {
+            0% {
+                transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+            }
+            1% {
+                transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+            }
+            2% {
+                transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+            }
+            100% {
+                transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, 1) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1));
+            }
+            }
 
-    .left-eye {
-      --eye-originx: 17px;
-      --eye-originy: 17px;
-    }
-    .right-eye {
-      --eye-originx: 55px;
-      --eye-originy: 17px;
-    }
-    .squint {
-      transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1))
-    }
-    .blink {
-      animation-name: eye-blink;
-      animation-duration: 10s;
-      animation-iteration-count: infinite;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .left-eye, .right-eye {
-        animation: none;
-      }
-    }
-  </style>
+            .left-eye {
+            --eye-originx: 17px;
+            --eye-originy: 17px;
+            }
+            .right-eye {
+            --eye-originx: 55px;
+            --eye-originy: 17px;
+            }
+            .squint {
+            transform: translate(var(--eye-originx), var(--eye-originy)) scale(1, .25) translate(calc(var(--eye-originx) * -1), calc(var(--eye-originy) * -1))
+            }
+            .blink {
+            animation-name: eye-blink;
+            animation-duration: 10s;
+            animation-iteration-count: infinite;
+            }
+            @media (prefers-reduced-motion: reduce) {
+            .left-eye, .right-eye {
+                animation: none;
+            }
+            }
+        </style>
+	}
 	<div class="grid place-content-center" id={ id }>
 		<div class="row-start-1 col-start-1 h-8">
 			<svg

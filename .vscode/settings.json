@@ -12,9 +12,10 @@
     "editor.defaultFormatter": "a-h.templ"
   },
   "files.associations": {
-    "*.css": "tailwindcss",
+    "*.css": "css"
   },
   "tailwindCSS.includeLanguages" : { 
     "templ": "html",
   },
+  "tailwindCSS.classFunctions": ["cva"]
 }

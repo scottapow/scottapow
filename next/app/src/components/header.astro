@@ -1,0 +1,70 @@
+---
+import Lilguy from './lilguy.astro';
+
+export type NavItem = {
+  url: string;
+  name: string;
+}
+
+type Props = {
+  navItems: NavItem[];
+}
+
+const { navItems } = Astro.props;
+---
+<header class="header">
+  <nav>
+    <ul class="ul">
+      <li class="lilguyli">
+        <a class:list={['lilguyanchor', 'anchor']} href="/" aria-label="Home">
+          <Lilguy />
+        </a>
+      </li>
+      {navItems.map(item => (
+        <li class="li">
+          <a class="anchor" href={item.url}>{item.name}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .header {
+    padding-inline: 16px;
+    padding-block: 8px;
+    background-color: var(--color-aquamarine-500);
+
+    @media (prefers-color-scheme: dark) {
+      border-bottom: 1px solid var(--color-aquamarine-500);
+      background-color: var(--color-french-violet-900);
+    }
+  }
+
+  .ul {
+    display: flex;
+    list-style-type: none;
+    gap: 16px;
+    justify-content: flex-end;
+  }
+
+  .lilguyli {
+    margin-inline-end: auto;
+  }
+
+  .lilguyanchor {
+    width: 100%;
+    height: 2rem;
+    display: block;
+  }
+
+  .li {
+    padding-block: 4px;
+  }
+
+  .anchor {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

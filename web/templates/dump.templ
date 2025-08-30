@@ -1,0 +1,40 @@
+package templates
+
+import "github.com/scottapow/scottapow/data"
+import "github.com/scottapow/scottapow/web/components"
+
+var doOnce = templ.NewOnceHandle()
+
+templ DumpPage(buildId string, user Claims, dump db.DumpsModel) {
+	@Layout(buildId, HeadData{
+		Title:       "Dump",
+		Description: "Dump",
+		Image:       "",
+	}, user) {
+		{{ dumpId := dump.Id.String() }}
+		<div class="py-6 px-4" data-dumpid={ dumpId } id="dumpwrapper">
+			<header>
+				<h1 class="mb-4">
+					@components.Heading1() {
+						{ dump.Description.String }
+					}
+				</h1>
+				<p></p>
+			</header>
+		</div>
+		@doOnce.Once() {
+			<script>
+                /** @param {string} id */
+                async function fetchDumps(id) {
+                    const response = await fetch(`/api/dumps?dumpId=${id}`);
+                    console.log(response);
+                }
+                let w = document.getElementById('dumpwrapper');
+
+                if (w && w.dataset.dumpid) {
+                    fetchDumps(w.dataset.dumpid);
+                }
+            </script>
+		}
+	}
+}

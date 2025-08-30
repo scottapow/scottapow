@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,37 +34,45 @@ func main() {
 	staticFilesHandler := http.StripPrefix("/web/public/", http.FileServer(http.Dir("./web/public/")))
 	s.Router.Handle("/web/public/", staticFilesHandler)
 
-	// API Handlers
+	// API Handlers https://pkg.go.dev/net/http#hdr-Patterns-ServeMux
 	dumpsService := dumps.NewDumpsService(a)
-	// s.Router.HandleFunc("GET /api/dumps", dumpsService.WithPermission(
-	// 	"dumps_read",
-	// 	func(w http.ResponseWriter, r *http.Request) {
-	// 		// claims, err := a.GetUserClaims(r)
-	// 		// if err != nil {
-	// 		// 	http.Error(w, err.Error(), http.StatusForbidden)
-	// 		// 	return
-	// 		// }
+	s.Router.HandleFunc("GET /api/dumps", dumpsService.WithPermission(
+		"dumps_read",
+		func(w http.ResponseWriter, r *http.Request) {
+			claims, err := a.GetUserClaims(r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusForbidden)
+				return
+			}
 
-	// 		dumpId := r.URL.Query().Get("dumpId")
-	// 		if dumpId != nil {
+			// make sure the user has permission to view the entries
 
-	// 		}
-	// 		// entries, err := dumpsService.GetAllDumpsData(r.Context(), claims.ID)
-	// 		// if err != nil {
-	// 		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 		// 	return
-	// 		// }
+			dumpId := r.URL.Query().Get("dumpId")
+			if dumpId == "" {
+				http.Error(w, "Missing query parameter dumpId", http.StatusInternalServerError)
+			}
 
-	// 		// w.Header().Set("Content-Type", "application/json")
-	// 		// w.WriteHeader(http.StatusOK)
-	// 		// err = json.NewEncoder(w).Encode(entries)
+			entries, err := dumpsService.GetDumpsData(r.Context(), dumpId, claims.ID)
+			if err != nil {
+				fmt.Println("error here")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-	// 		// if err != nil {
-	// 		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 		// 	return
-	// 		// }
-	// 	},
-	// ))
+			type DumpResponse struct {
+				entries []db.DumpEntriesModal 
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err = json.NewEncoder(w).Encode(DumpResponse{entries: entries})
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		},
+	))
 	s.Router.HandleFunc("POST /api/dumps", dumpsService.WithPermission(
 		"dumps_write",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +106,22 @@ func main() {
 		}
 
 		web.WriteUserTemplate(w, r, claims)
+	})
+	s.Router.HandleFunc("/dumps/{dumpId}", func(w http.ResponseWriter, r *http.Request) {
+		claims, err := a.GetUserClaims(r)
+		if err != nil || !slices.Contains(claims.Permissions, "dumps_read") {
+			web.DumpsUnauthenticated(w, r, claims)
+		} else {
+			dumpId := r.PathValue("dumpId")
+			dump, err := dumpsService.GetDump(r.Context(), claims.ID, dumpId)
+
+			if err != nil {
+				fmt.Println(err.Error())
+				http.Error(w, "Could not access dump", http.StatusForbidden)
+			}
+
+			web.Dump(w, r, claims, dump)
+		}
 	})
 	s.Router.HandleFunc("/dumps", func(w http.ResponseWriter, r *http.Request) {
 		claims, err := a.GetUserClaims(r)
