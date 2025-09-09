@@ -10,6 +10,7 @@ export default defineConfig({
   output: 'server',
   adapter: node({
     mode: 'standalone',
+    experimentalDisableStreaming: true,
   }),
   server: {
     port: Number(PORT ?? 4321)
