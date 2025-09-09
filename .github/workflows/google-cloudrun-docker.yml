@@ -87,6 +87,7 @@ jobs:
           source: ./
           env_vars: |-
             HOST=https://scottpowell.dev
+            GOOGLE_NODE_RUN_SCRIPTS=run
           secrets: |-
             GOOGLE_KEY=GOOGLE_KEY:latest
             GOOGLE_SECRET=GOOGLE_SECRET:latest
