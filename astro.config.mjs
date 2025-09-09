@@ -7,6 +7,7 @@ const { PORT } = loadEnv(process.env.PORT ?? '', process.cwd(), "");
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://scottpowell.dev',
   adapter: node({
     mode: 'standalone',
   }),
