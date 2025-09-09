@@ -3,7 +3,17 @@ main
 .env
 styled-system
 styled-system-studio
-node_modules
+node_modules/
 dist/
 gha-creds-*.json
 pkg/
+.astro/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# jetbrains setting folder
+.idea/
