@@ -1,5 +1,5 @@
 FROM node:lts-bullseye AS runtime
-WORKDIR /app
+WORKDIR /
 
 COPY . .
 
