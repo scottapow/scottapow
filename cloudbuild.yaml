@@ -16,5 +16,6 @@ steps:
     - 'us-east1-docker.pkg.dev/steel-spark-422723-e0/cloudrun-docker/scottapow/scottapow:$COMMIT_SHA'
     - '--region'
     - 'us-east1'
+logging: CLOUD_LOGGING_ONLY
 images:
 - 'us-east1-docker.pkg.dev/steel-spark-422723-e0/cloudrun-docker/scottapow/scottapow:$COMMIT_SHA'
