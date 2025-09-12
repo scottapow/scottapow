@@ -43,7 +43,7 @@ const { title, description, image } = Astro.props;
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
-    <Header navItems={[]}/>
+    <Header navItems={[{ name: 'Track', url: '/track'}]}/>
     <main>
       <slot />
     </main>
