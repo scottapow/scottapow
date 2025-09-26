@@ -1,0 +1,30 @@
+---
+import type { HTMLAttributes, HTMLTag } from 'astro/types';
+
+type Props<C extends Extract<HTMLTag, 'input' | 'textarea'> = 'input'> = HTMLAttributes<C> & {
+  component?: C;
+};
+const { class: className, component, ...props } = Astro.props;
+const Component = component ?? 'input';
+---
+<Component class:list={['form-input', className]} {...props} />
+
+<style>
+  .form-input {
+    --shadow-color: var(--color-french-violet-900);
+    width: 100%;
+    padding: 0.25rem;
+    background-color: var(--color-aquamarine-100);
+    box-shadow: 
+      inset -2px 0 0 0 var(--shadow-color), /* right */
+      inset 0 -2px 0 0 var(--shadow-color), /* bottom */
+      inset 2px 0 0 0 var(--shadow-color) /* left*/
+    ;
+
+    @media (prefers-color-scheme: dark) { 
+      color: var(--color-french-violet-700);
+      background-color: var(--color-aquamarine-100);
+      --shadow-color: var(--color-french-violet-200);
+    }
+  }
+</style>

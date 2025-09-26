@@ -17,5 +17,8 @@
   "tailwindCSS.includeLanguages" : { 
     "templ": "html",
   },
-  "tailwindCSS.classFunctions": ["cva"]
+  "tailwindCSS.classFunctions": [
+    "cva"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

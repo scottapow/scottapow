@@ -1,21 +1,26 @@
 ---
-import type { HTMLAttributes } from 'astro/types';
+import type { HTMLAttributes, HTMLTag } from 'astro/types';
 
-type Props = HTMLAttributes<'span'> & {
+type Props<C extends HTMLTag = 'span'> = HTMLAttributes<C> & {
   variant: 'h1' | 'h2' | 'h3' | 'p' | 'lead' | 'link' | 'small';
   color?: 'default' | 'violet' | 'aquamarine';
+  /** default: 'span' */
+  component?: C;
 }
 
 const { 
   variant, 
   class: className,
   color = 'default',
+  component = 'span',
   ...p 
 } = Astro.props;
+
+const Component = component;
 ---
-<span class:list={[variant, className, `color-${color}`]} {...p}>
+<Component class:list={[variant, className, `color-${color}`]} {...p}>
   <slot />
-</span>
+</Component>
 
 <style>
   .h1 {

@@ -33,6 +33,9 @@ p, h1, h2, h3, h4, h5, h6 {
 }
 
 :root {
+  --ff-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --ff-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
   --color-azure-100: #E0F6FF;
   --color-azure-200: #C1EDFF;
   --color-azure-300: #A1E4FF;
@@ -67,6 +70,15 @@ p, h1, h2, h3, h4, h5, h6 {
   --color-bg: #fff;
   --color-text-french-violet: var(--color-french-violet-100);
   --color-bg-french-violet: var(--color-french-violet-500);
+  --color-outline1: var(--color-french-violet-100);
+  --color-outline2: var(--color-french-violet-800);
+}
+
+:focus-visible {
+  outline-offset: 0px;
+  outline-width: 2px;
+  outline-color: var(--color-outline1);
+  box-shadow: 0px 0px 0px 4px var(--color-outline2);
 }
 
 body {
@@ -80,6 +92,8 @@ body {
     --color-bg: #000;
     --color-text-french-violet: var(--color-french-violet-500);
     --color-bg-french-violet: var(--color-french-violet-100);
+    --color-outline1: var(--color-french-violet-800);
+    --color-outline2: var(--color-french-violet-100);
   }
 }
 
@@ -94,7 +108,7 @@ body {
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
     tab-size: 4;
-    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-family: var(--ff-mono);
     font-feature-settings: normal;
     font-variation-settings: normal;
     -webkit-tap-highlight-color: transparent;
@@ -124,7 +138,7 @@ body {
     font-weight: bolder;
   }
   code, kbd, samp, pre {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family: var(--ff-mono);
     font-feature-settings: normal;
     font-variation-settings: normal;
     font-size: 1em;

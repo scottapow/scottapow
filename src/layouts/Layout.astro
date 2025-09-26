@@ -2,8 +2,9 @@
 import type { Claims } from '../features/user/types';
 import Header, { type NavItem } from '../components/header.astro';
 import '../index.css';
+import type { HTMLAttributes } from 'astro/types';
 
-type Props = {
+type Props = HTMLAttributes<'main'> & {
 	title: string;
 	description: string;
 	image?: string;
@@ -27,7 +28,7 @@ function getNavItems(user: Claims): NavItem[] {
   return navItems;
 }
 
-const { title, description, image } = Astro.props;
+const { title, description, image, ...mainProps } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
@@ -43,8 +44,8 @@ const { title, description, image } = Astro.props;
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
-    <Header navItems={[{ name: 'Track', url: '/track'}]}/>
-    <main>
+    <Header navItems={[{ name: 'Track', url: '/track'}, {name: 'Stories', url: '/stories'}]}/>
+    <main {...mainProps}>
       <slot />
     </main>
   </body>

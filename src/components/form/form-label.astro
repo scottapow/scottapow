@@ -1,0 +1,16 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'label'>;
+const { class: className, ...props } = Astro.props;
+---
+<label class:list={['form-label', className]} {...props}>
+  <slot />
+</label>
+
+<style>
+  .form-label {
+    display: inline-block;
+    margin-block-end: .125rem;
+  }
+</style>

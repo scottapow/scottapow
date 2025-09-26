@@ -1,26 +1,154 @@
 ---
 import Typography from '../components/typography.astro';
 import Layout from '../layouts/Layout.astro';
-
+import Button from '../components/button.astro';
+import { FORM_ID, ID_TRACKS, CN_TRACK, CN_TRACK_DESC, CN_TRACK_TITLE } from '../features/track/constants';
+import Form from '../components/form';
 ---
-<Layout title="Track" description='Track Some Things'>
-  <article>
-    <header>
-      <h1>
-        <Typography variant='h1' color="violet">Track</Typography>
-      </h1>
-      
-      <!-- add a scale showing where on the spectrum of front end to back end you are allow it to be slidable -->
-    </header>
-    <section>
-      
-    </section>
-  </article>
+<Layout title="Track" description='Track Some Things' class='main'>
+  <section class="box">
+    <Typography variant="h2" component="h2" class="mb-4">Tracking:</Typography>
+
+    <div id={ID_TRACKS}>
+      <div class:list={['empty', 'track', CN_TRACK]}>
+        <Typography variant="h3" component="h3" class:list={['track-name', CN_TRACK_TITLE]}></Typography>
+        <Typography variant="small" component="p" class:list={['track-desc', CN_TRACK_DESC]}></Typography>
+      </div>
+    </div>
+  </section>
+  <section class="box">
+    <form id={FORM_ID} class="form">
+      <Typography variant='h2' component="h2">Start a Track Group</Typography>
+
+      <Form.Field>
+        <Form.Label for="name">Name</Form.Label>
+        <Form.Input type="text" name="name" id="name" />
+      </Form.Field>
+
+      <Form.Field>
+        <Form.Label for="description">Description</Form.Label>
+        <Form.Input component="textarea" name="description" id="description" />
+      </Form.Field>
+
+      <Button type="submit" variant="primary" class="right">Click Here</Button>
+    </form>
+
+  </section>
 </Layout>
 
+<script>
+  import { ClientDB } from "../features/db/client";
+  import { FORM_ID, ID_TRACKS, CN_TRACK, CN_TRACK_EMPTY, CN_TRACK_DESC, CN_TRACK_TITLE } from '../features/track/constants';
+import type { ITrack } from "../features/track/types";
+
+  (async () => {
+    const Store = new ClientDB();
+    await Store.connect('TRACKS');
+
+    const f = document.getElementById(FORM_ID) as HTMLFormElement;
+    handleForm(Store, f);
+    getAllTracks(Store);
+  })();
+
+  function handleForm(Store: ClientDB, f: HTMLFormElement) {
+    if (!f) return;
+    f.addEventListener('submit', async function handleFormSubmit(ev) {
+      ev.preventDefault();
+      console.log('here');
+      let formData = new FormData(this);
+      let formObj = Object.fromEntries(formData.entries());
+      let track: ITrack = { 
+        id: crypto.randomUUID(),
+        name: formObj.name as string ?? '',
+        description: formObj.description as string ?? '',
+        things: [],
+      };
+      await Store.addTrack(track);
+      addTrackToDOM(track);
+    });
+  }
+
+  function addTrackToDOM(t: ITrack) {
+    let tracksContainer = document.getElementById(ID_TRACKS);
+    let mt = document.querySelector(`.${CN_TRACK}.${CN_TRACK_EMPTY}`)!;
+
+    if (!mt || !tracksContainer) return;
+
+    let tEl = mt.cloneNode(true) as HTMLElement;
+    tEl.classList.remove(CN_TRACK_EMPTY);
+    tEl.querySelector('.' + CN_TRACK_TITLE)!.textContent = t.name;
+    tEl.querySelector('.' + CN_TRACK_DESC)!.textContent = t.description;
+    tracksContainer.appendChild(tEl);
+  }
+   
+  async function getAllTracks(Store: ClientDB) {
+    let tracks = await Store.getTracks();
+
+    for (const t of tracks) {
+      addTrackToDOM(t);
+    }
+  }
+
+</script>
+
 <style>
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 2rem;
+  }
+
   header {
     padding-block: 24px;
     padding-inline: 16px;
+  }
+
+  .box {
+    width: 100%;
+    max-width: 400px;
+    padding-block: 16px;
+    padding-inline: 16px;
+    container-type: inline-size;
+    
+    background-color: var(--color-aquamarine-500);
+    color: var(--color-french-violet-700);
+
+    @media (prefers-color-scheme: dark) { 
+      color: var(--color-aquamarine-200);
+      background-color: var(--color-french-violet-700);
+    }
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .mb-4 {
+    margin-block-end: 1rem;
+  }
+
+  .track {
+    margin-block-end: .5rem;
+  }
+
+  .track-name {
+    color: var(--color-aquamarine-900);
+    
+    @media (prefers-color-scheme: dark) { 
+      color: var(--color-aquamarine-500);
+    }
+  }
+
+  .track-desc {
+
+  }
+
+  .right {
+    margin-left: auto;
   }
 </style>

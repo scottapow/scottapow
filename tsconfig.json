@@ -1,7 +1,8 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "moduleResolution": "node"
   },
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"]

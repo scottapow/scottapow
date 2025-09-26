@@ -1,0 +1,15 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'div'>;
+const { class: className, ...props } = Astro.props;
+---
+<div class:list={['form-field', className]} {...props}>
+  <slot />
+</div>
+
+<style>
+  .form-field {
+    width: 100%;
+  }
+</style>
