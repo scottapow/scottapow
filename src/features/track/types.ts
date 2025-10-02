@@ -1,15 +1,21 @@
 export interface ITrack {
   id: string;
+  slug: string;
   name: string;
   description: string;
   things: Array<ITrackThing>;
 }
 
+export type Type = 'number' | 'text';
+type GoalPrimitive = number | null;
+export type Goal<P = GoalPrimitive> = P;// | { su: P, m: P, tu: P, w: P, th: P, f: P, sa: P };
 export interface ITrackThing {
-  id: string;
-  trackId: ITrack['id'];
+  id: number;
   name: string;
-  description: string;
+  trackId: ITrack['id'];
+  description?: string;
+  type: Type;
+  goal: Goal;
   entries: Array<ITrackEntry>;
 }
 

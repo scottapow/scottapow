@@ -1,51 +1,52 @@
 ---
-import Typography from '../components/typography.astro';
-import Layout from '../layouts/Layout.astro';
-import Button from '../components/button.astro';
-import { FORM_ID, ID_TRACKS, CN_TRACK, CN_TRACK_DESC, CN_TRACK_TITLE } from '../features/track/constants';
-import Form from '../components/form';
+import Typography from '../../components/typography.astro';
+import Layout from '../../layouts/Layout.astro';
+import Button from '../../components/button.astro';
+import { CREATE_TRACK_FORM_ID, ID_TRACKS, CN_TRACK, CN_TRACK_DESC, CN_TRACK_TITLE, CN_TRACK_EMPTY } from '../../features/track/constants';
+import Form from '../../components/form';
+import Card from '../../components/card.astro';
 ---
-<Layout title="Track" description='Track Some Things' class='main'>
-  <section class="box">
-    <Typography variant="h2" component="h2" class="mb-4">Tracking:</Typography>
+<Layout title="Track" description='Track Some Things'>
+  <Card>
+    <Typography variant="h2" component="h2" class="mb-4">Tracking</Typography>
 
     <div id={ID_TRACKS}>
-      <div class:list={['empty', 'track', CN_TRACK]}>
+      <a class:list={[CN_TRACK_EMPTY, 'track', CN_TRACK]}>
         <Typography variant="h3" component="h3" class:list={['track-name', CN_TRACK_TITLE]}></Typography>
         <Typography variant="small" component="p" class:list={['track-desc', CN_TRACK_DESC]}></Typography>
-      </div>
+      </a>
     </div>
-  </section>
-  <section class="box">
-    <form id={FORM_ID} class="form">
+  </Card>
+  <Card>
+    <Form id={CREATE_TRACK_FORM_ID} method="post">
       <Typography variant='h2' component="h2">Start a Track Group</Typography>
 
       <Form.Field>
         <Form.Label for="name">Name</Form.Label>
-        <Form.Input type="text" name="name" id="name" />
+        <Form.Input type="text" name="name" id="name" maxlength={50} />
       </Form.Field>
 
       <Form.Field>
         <Form.Label for="description">Description</Form.Label>
-        <Form.Input component="textarea" name="description" id="description" />
+        <Form.Input component="textarea" name="description" id="description" maxlength={1000} />
       </Form.Field>
 
-      <Button type="submit" variant="primary" class="right">Click Here</Button>
-    </form>
-
-  </section>
+      <Button type="submit" variant="primary" class="right">Create Track Group</Button>
+    </Form>
+  </Card>
 </Layout>
 
 <script>
-  import { ClientDB } from "../features/db/client";
-  import { FORM_ID, ID_TRACKS, CN_TRACK, CN_TRACK_EMPTY, CN_TRACK_DESC, CN_TRACK_TITLE } from '../features/track/constants';
-import type { ITrack } from "../features/track/types";
+  import { ClientDB } from "../../features/db/client";
+  import { CREATE_TRACK_FORM_ID, ID_TRACKS, CN_TRACK, CN_TRACK_EMPTY, CN_TRACK_DESC, CN_TRACK_TITLE } from '../../features/track/constants';
+  import type { ITrack } from "../../features/track/types";
+  import slugify from "../../utils/slugify";
 
   (async () => {
     const Store = new ClientDB();
     await Store.connect('TRACKS');
 
-    const f = document.getElementById(FORM_ID) as HTMLFormElement;
+    const f = document.getElementById(CREATE_TRACK_FORM_ID) as HTMLFormElement;
     handleForm(Store, f);
     getAllTracks(Store);
   })();
@@ -54,11 +55,11 @@ import type { ITrack } from "../features/track/types";
     if (!f) return;
     f.addEventListener('submit', async function handleFormSubmit(ev) {
       ev.preventDefault();
-      console.log('here');
       let formData = new FormData(this);
       let formObj = Object.fromEntries(formData.entries());
       let track: ITrack = { 
         id: crypto.randomUUID(),
+        slug: slugify(formObj.name as string ?? ''),
         name: formObj.name as string ?? '',
         description: formObj.description as string ?? '',
         things: [],
@@ -74,10 +75,11 @@ import type { ITrack } from "../features/track/types";
 
     if (!mt || !tracksContainer) return;
 
-    let tEl = mt.cloneNode(true) as HTMLElement;
+    let tEl = mt.cloneNode(true) as HTMLAnchorElement;
     tEl.classList.remove(CN_TRACK_EMPTY);
     tEl.querySelector('.' + CN_TRACK_TITLE)!.textContent = t.name;
     tEl.querySelector('.' + CN_TRACK_DESC)!.textContent = t.description;
+    tEl.href = `track/${t.slug}`;
     tracksContainer.appendChild(tEl);
   }
    
@@ -92,40 +94,9 @@ import type { ITrack } from "../features/track/types";
 </script>
 
 <style>
-  .main {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: center;
-    padding: 2rem;
-  }
-
   header {
     padding-block: 24px;
     padding-inline: 16px;
-  }
-
-  .box {
-    width: 100%;
-    max-width: 400px;
-    padding-block: 16px;
-    padding-inline: 16px;
-    container-type: inline-size;
-    
-    background-color: var(--color-aquamarine-500);
-    color: var(--color-french-violet-700);
-
-    @media (prefers-color-scheme: dark) { 
-      color: var(--color-aquamarine-200);
-      background-color: var(--color-french-violet-700);
-    }
-  }
-
-  .form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
   }
 
   .mb-4 {
@@ -142,10 +113,6 @@ import type { ITrack } from "../features/track/types";
     @media (prefers-color-scheme: dark) { 
       color: var(--color-aquamarine-500);
     }
-  }
-
-  .track-desc {
-
   }
 
   .right {

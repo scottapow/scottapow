@@ -1,0 +1,166 @@
+---
+import Button from "../../components/button.astro";
+import Card from "../../components/card.astro";
+import Form from "../../components/form";
+import TrackMetric, { ID_THING_WRAPPER } from "../../components/track/track-metric.astro";
+import Typography from "../../components/typography.astro";
+import {
+  CREATE_THING_FORM_ID,
+  ID_TRACK_WRAP,
+  ID_TRACK_NEW,
+  CN_TRACK_NEW_CANCEL,
+  CN_TRACK_NEW_SUBMIT,
+} from "../../features/track/constants";
+import Layout from "../../layouts/Layout.astro";
+
+const { slug } = Astro.params;
+---
+
+<Layout title={"Track - " + slug} class="main">
+  <Card>
+    <Typography variant="h2" component="h2" class="heading">Today</Typography>
+  </Card>
+  <Card>
+    <Typography variant="h2" component="h2" class="heading">Metrics</Typography>
+
+    <div id={ID_THING_WRAPPER}>
+      <TrackMetric />
+    </div>
+    <!-- display things -->
+
+    <Button id={ID_TRACK_NEW} variant="primary"> Track Something Else</Button>
+
+    <Form id={CREATE_THING_FORM_ID} method="post" hidden>
+      <Form.Field>
+        <Form.Label for="name">Name</Form.Label>
+        <Form.Input type="text" name="name" id="name" maxlength={50} />
+      </Form.Field>
+
+      <Form.Field>
+        <Form.Label for="description">Description</Form.Label>
+        <Form.Input component="textarea" name="description" id="description" maxlength={500} />
+      </Form.Field>
+
+      <Form.Field>
+        <Form.Label for="type">Type</Form.Label>
+        <Form.Select name="type" id="type">
+          <!-- ITrackThing['type'] -->
+          <option value="number">Number</option>
+          <option value="text">text</option>
+        </Form.Select>
+      </Form.Field>
+
+      <Form.Field>
+        <Form.Label for="goal">Goal</Form.Label>
+        <Form.Input type="number" name="goal" id="goal" maxlength={50} />
+        <p>custom goal setting planned</p>
+      </Form.Field>
+
+      <Form.Actions>
+        <Button variant="secondary" class={CN_TRACK_NEW_CANCEL} type="reset">Cancel</Button>
+        <Button variant="primary" class={CN_TRACK_NEW_SUBMIT} type="submit">Submit</Button>
+      </Form.Actions>
+    </Form>
+
+    <div id={ID_TRACK_WRAP} data-slug={slug}></div>
+  </Card>
+</Layout>
+
+<script>
+  import { ClientDB } from "../../features/db/client";
+  import {
+    CREATE_THING_FORM_ID,
+    ID_TRACK_WRAP,
+    ID_TRACK_NEW,
+    CN_TRACK_NEW_CANCEL,
+    CN_TRACK_NEW_SUBMIT,
+  } from "../../features/track/constants";
+  import type { Goal, Type } from "../../features/track/types";
+  import type { ITrackThing } from "../../features/track/types";
+  import { 
+    ID_THING_WRAPPER, 
+    CN_THING, 
+    CN_THING_EMPTY, 
+    CN_THING_DESCRIPTION, 
+    CN_THING_GOAL, 
+    CN_THING_NAME, 
+    CN_THING_TYPE,
+  } from "../../components/track/track-metric.astro";
+
+  function addThingToThings(thing: ITrackThing) {
+    let wrapper = document.getElementById(ID_THING_WRAPPER);
+    let emptyThing = document.querySelector(`.${CN_THING}.${CN_THING_EMPTY}`);
+    
+    if (!wrapper) return;
+    if (!emptyThing) return;
+    let thingEl = emptyThing?.cloneNode(true) as Element;
+
+    thingEl.querySelector('.' + CN_THING_NAME)!.textContent = thing.name;
+    thingEl.querySelector('.' + CN_THING_DESCRIPTION)!.textContent = thing.description ?? '';
+    thingEl.querySelector('.' + CN_THING_GOAL)!.textContent = thing.goal?.toString() ?? '';
+    // thingEl.querySelector('.' + CN_THING_TYPE)!.textContent = thing.type;
+    thingEl.classList.remove(CN_THING_EMPTY);
+
+    wrapper.appendChild(thingEl);
+  }
+
+  (async () => {
+    const Store = new ClientDB();
+    await Store.connect("TRACKS");
+
+    let wrapper = document.getElementById(ID_TRACK_WRAP);
+    if (!wrapper) return;
+
+    let slug = wrapper.dataset.slug;
+    if (!slug) return;
+
+    const track = await Store.getTrackBySlug(slug);
+    console.log(track);
+    const things = await Store.getThingsById(track.id);
+    console.log(things)
+    things.forEach(addThingToThings);
+    /** ----- ------ ----- ----- */
+    {
+      let formEl = document.getElementById(CREATE_THING_FORM_ID) as HTMLFormElement;
+      let toggleFormBtn = document.getElementById(ID_TRACK_NEW) as HTMLButtonElement;
+
+      if (formEl && toggleFormBtn) {
+        // show the form when the use click the toggle
+        function handleToggle(e: Event) {
+          if (formEl!.hidden) formEl!.hidden = false;
+        }
+        toggleFormBtn.addEventListener("click", handleToggle);
+  
+        formEl.addEventListener("submit", async function handleSubmit(ev) {
+          ev.preventDefault();
+          let formData = new FormData(this);
+          let formObj = Object.fromEntries(formData.entries());
+          let trackThing: Parameters<typeof Store.addThing>[0] = {
+            name: formObj.name.toString(),
+            description: formObj.description.toString(),
+            goal: Number(formObj.goal), // TODO: add custom goal handling
+            trackId: track.id,
+            type: formObj.type.toString() as Type,
+          };
+
+          try {
+            let thing = await Store.addThing(trackThing);
+            addThingToThings(thing);
+            this.reset();
+            formEl!.hidden = true;
+          } catch (error) {
+            console.error(error);
+            alert('Failed to create thing');
+            // TODO: handle error gracefully
+          }
+        });
+      }
+    }
+  })();
+</script>
+
+<style>
+  .heading {
+    margin-block-end: 1.5rem;
+  }
+</style>

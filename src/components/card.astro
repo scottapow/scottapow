@@ -1,0 +1,28 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'section'>;
+
+const { class: className, ...props } = Astro.props;
+---
+<section class:list={['box', className]} {...props}>
+  <slot />
+</section>
+
+<style>
+  .box {
+    width: 100%;
+    max-width: 400px;
+    padding-block: 16px;
+    padding-inline: 16px;
+    container-type: inline-size;
+    
+    background-color: var(--color-aquamarine-500);
+    color: var(--color-french-violet-700);
+
+    @media (prefers-color-scheme: dark) { 
+      color: var(--color-aquamarine-200);
+      background-color: var(--color-french-violet-700);
+    }
+  }
+</style>

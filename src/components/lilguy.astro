@@ -76,6 +76,11 @@ import Coffee from "./coffee.astro"
 </div>
 
 <script>
+  const removeBlink = (els: Element[]) => els.forEach(el => el.classList.remove('blink'));
+  const addBlink = (els: Element[]) => els.forEach(el => el.classList.add('blink'));
+  const removeSquint = (els: Element[]) => els.forEach(el => el.classList.remove('squint'));
+  const addSquint = (els: Element[]) => els.forEach(el => el.classList.add('squint'));
+
   let lilguys = document.querySelectorAll('.lilguy');
   for (let i = 0; i < lilguys.length; i++) {
     const lg = lilguys[i] as HTMLElement;
@@ -139,11 +144,6 @@ import Coffee from "./coffee.astro"
       }
     };
   }
-
-  const removeBlink = (els: Element[]) => els.forEach(el => el.classList.remove('blink'));
-  const addBlink = (els: Element[]) => els.forEach(el => el.classList.add('blink'));
-  const removeSquint = (els: Element[]) => els.forEach(el => el.classList.remove('squint'));
-  const addSquint = (els: Element[]) => els.forEach(el => el.classList.add('squint'));
 </script>
 
 <style>

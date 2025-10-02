@@ -6,7 +6,11 @@
     "templ": "html"
   },
   "emmet.syntaxProfiles": {
-    "typescript": ["jsx", "typescript", "html"]
+    "typescript": [
+      "jsx",
+      "typescript",
+      "html"
+    ]
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
@@ -14,11 +18,13 @@
   "files.associations": {
     "*.css": "css"
   },
-  "tailwindCSS.includeLanguages" : { 
+  "tailwindCSS.includeLanguages": {
     "templ": "html",
   },
   "tailwindCSS.classFunctions": [
     "cva"
   ],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "javascript.preferences.quoteStyle": "double",
+  "typescript.preferences.quoteStyle": "double"
 }
