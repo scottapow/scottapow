@@ -20,7 +20,7 @@ body {
 }
 
 img, picture, video, canvas, svg {
-  display: block;
+  display: inline-block;
   max-width: 100%;
 }
 
@@ -176,7 +176,7 @@ body {
     list-style: none;
   }
   img, svg, video, canvas, audio, iframe, embed, object {
-    display: block;
+    display: inline-block;
     vertical-align: middle;
   }
   img, video {
@@ -237,4 +237,16 @@ body {
   [hidden]:where(:not([hidden="until-found"])) {
     display: none !important;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

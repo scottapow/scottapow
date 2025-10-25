@@ -1,21 +1,33 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Variant = "primary" | "secondary";
+export type ButtonVariant = "primary" | "secondary";
+export type ButtonSize = "sm" | 'md' | "lg";
 type Props = HTMLAttributes<"button"> & {
-  variant: Variant;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 };
 
-const { variant = "primary", class: className, ...props } = Astro.props;
+const { variant = "primary", size = 'md', class: className, ...props } = Astro.props;
 ---
-<button class:list={["button", className, variant]} {...props}>
+<button class:list={["button", className, variant, size]} {...props}>
   <slot />
 </button>
 
 <style>
-  .button {
+  .sm {
+    padding-block: 4px;
+    padding-inline: 8px;
+  }
+  .md {
     padding-block: 8px;
     padding-inline: 12px;
+  }
+  .lg {
+    padding-block: 12px;
+    padding-inline: 16px;
+  }
+  .button {
     font-weight: bold;
   }
 

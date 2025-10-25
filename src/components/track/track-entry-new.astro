@@ -1,0 +1,229 @@
+---
+import Button from "../button.astro";
+import Form from "../form";
+import Note from "../icon/note.astro";
+import Typography from "../typography.astro";
+import { CN_ENTRY_FORM, CN_THINGID_INPUT, CN_THING_VALUE_LABEL, CN_THING_LABEL_NOTE, CN_THING_FIELD_NOTE, ID_TRACK_NEW_WRAP, CN_THINGNAME_HEADING, CN_THING_VALUE_INPUT } from "../../features/track/constants";
+
+type Props = {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+<div id={ID_TRACK_NEW_WRAP} data-slug={slug}>
+  <template class={CN_ENTRY_FORM}>
+    <form method="post" data-current-step="1">
+      <Form.Input class={CN_THINGID_INPUT} name="thingId" type="hidden" />
+      <Typography class={CN_THINGNAME_HEADING} variant="h3" component="h3"></Typography>
+
+      <div>
+        <fieldset data-step="1">
+          <Form.Label class={CN_THING_VALUE_LABEL} for="">Value</Form.Label>
+          <Form.Input class={CN_THING_VALUE_INPUT} name="value" required type="number" />
+        </fieldset>
+
+        <fieldset data-step="2">
+          <Form.Label class={CN_THING_LABEL_NOTE} for="">Note</Form.Label>
+          <Form.Input class={CN_THING_FIELD_NOTE} name="note" type="text" />
+        </fieldset>
+
+        <fieldset data-step="3">
+          <div class="datetime-labels">
+            <Form.Label for="date">Date</Form.Label>
+            <span>/</span>
+            <Form.Label for="time">Time</Form.Label>
+          </div>
+          <div class="datetime-inputs">
+            <Form.Input required type="date" id="date" name="date" value="" />
+            <Form.Input required type="time" id="time" name="time" value="" />
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="actions">
+        <Button size="sm" type="button" variant="secondary" class="entry-btn-back">Back</Button>
+        <Button size="sm" type="button" variant="secondary" class="entry-btn-next">Next</Button>
+        <Button size="sm" type="submit" variant="primary" class="entry-btn-submit">Log</Button>
+      </div>
+    </form>
+  </template>
+</div>
+
+<script>
+import { ClientDB, thingCreateEventType } from "../../features/db/client";
+import type { ITrackThing } from "../../features/track/types";
+import { CN_ENTRY_FORM, CN_THING_FIELD_NOTE, CN_THING_LABEL_NOTE, CN_THING_VALUE_INPUT, CN_THING_VALUE_LABEL, CN_THINGID_INPUT, CN_THINGNAME_HEADING, ID_TRACK_NEW_WRAP } from "../../features/track/constants";
+import { fade } from "astro:transitions";
+
+function createThingForm(thing: ITrackThing) {
+  let _form = document.querySelector(`.${CN_ENTRY_FORM}`)! as HTMLTemplateElement;
+  let form = _form.content.cloneNode(true) as HTMLFormElement;
+
+  let thingIdInput = form.querySelector(`.${CN_THINGID_INPUT}`)!;
+  thingIdInput.setAttribute('value', thing.id.toString());
+
+  let thingNameHeading = form.querySelector(`.${CN_THINGNAME_HEADING}`)!;
+  thingNameHeading.textContent = `Log ${thing.name}`;
+
+  let valInput = form.querySelector(`.${CN_THING_VALUE_INPUT}`)!;
+    valInput.id = `${thing.id}-value`;
+  let valLabel = form.querySelector(`.${CN_THING_VALUE_LABEL}`)!;
+    valLabel.textContent = thing.name;
+    valLabel.setAttribute('for', valInput.id);
+
+  let noteInput = form.querySelector(`.${CN_THING_FIELD_NOTE}`)! as HTMLInputElement;
+    noteInput.id = `${thing.id}-note`;
+  let noteLabel = form.querySelector(`.${CN_THING_LABEL_NOTE}`)! as HTMLLabelElement;
+    noteLabel.setAttribute('for', noteInput.id);
+
+  return form;
+}
+
+function addThingsFieldsToNewEntryForm(things: ITrackThing[]) {
+  let entriesContainer = document.getElementById(ID_TRACK_NEW_WRAP)!;
+  let forms = things.map(createThingForm);
+  entriesContainer.append(...forms);
+
+  Array.from(entriesContainer.querySelectorAll('form') ?? []).map(f => {
+    console.log('f', f);
+    f.addEventListener('submit', handleFormSubmit);
+
+    let btnBack = f.querySelector('.entry-btn-back')! as HTMLButtonElement;
+    let btnNext = f.querySelector('.entry-btn-next')! as HTMLButtonElement;
+    btnBack.addEventListener('click', () => { 
+      let currentStep = Number(f.dataset.currentStep ?? '1');
+      f.setAttribute('data-current-step', ((currentStep - 1) || 1).toString());
+    })
+    btnNext.addEventListener('click', () => { 
+      let currentStep = Number(f.dataset.currentStep ?? '1');
+      f.setAttribute('data-current-step', Math.min(((currentStep + 1) || 1), 3).toString());
+    })
+  })
+}
+
+async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
+  ev.preventDefault();
+  
+  const Store = new ClientDB();
+  await Store.connect("TRACKS");
+
+  let formData = new FormData(this);
+  let formObj = Object.fromEntries(formData.entries());
+  let startAt = (new Date(`${formObj.date} ${formObj.time}`)).toUTCString();
+  console.log(formObj);
+  // let key = await Store.addEntry({
+  //   startAt,
+  //   endAt: null,
+  //   loggedAt: new Date().toUTCString(),
+  //   note: formObj.note.toString(),
+  //   thingId: Number(formObj.thingId),
+  //   value: Number(formObj.value),
+  // });
+  // console.log(key);
+}
+
+function initNewEntryForms() {
+  let formEls = document.querySelectorAll<HTMLFormElement>(`.entry-form`) ?? [];
+  for (const _formEl of formEls) {
+    // remove all event listeners - necessary due to adding new "things" on the same page
+    // triggered by `thingCreateEventType`
+    let formEl = _formEl.cloneNode(true) as HTMLFormElement;
+    _formEl.parentNode?.replaceChild(formEl, _formEl);
+  }
+}
+
+(async () => {
+  // initNewEntryForms();
+  // document.addEventListener(thingCreateEventType, initNewEntryForms);
+
+  // const formEl = document.querySelector('.entry-form')!;
+  // formEl.addEventListener('click', (ev) => {
+  //   if (ev.target && ev.target instanceof Element) {
+  //     console.log(ev);
+  //   }
+  // })
+
+  const Store = new ClientDB();
+  await Store.connect("TRACKS");
+
+  let wrapper = document.getElementById(ID_TRACK_NEW_WRAP)!;
+  if (!wrapper) return;
+
+  let trackSlug = wrapper.dataset.slug;
+  if (!trackSlug) return;
+
+  const track = await Store.getTrackBySlug(trackSlug);
+  const things = await Store.getThingsById(track.id);
+  addThingsFieldsToNewEntryForm(things);
+})();
+
+</script>
+
+<style>
+  form fieldset { display: none; }
+
+  form {
+    display: grid;
+    gap: .75rem;
+    --pad: 1rem;
+    border: 3px solid var(--color-text);
+    padding: var(--pad);
+    grid-template-columns: 1fr auto;
+    align-items: end;
+
+    & h3 {
+      margin-inline: calc(-1 * var(--pad));
+      margin-block-start: calc(-1 * var(--pad));
+      padding-block: calc(var(--pad) / 2);
+      padding-inline: var(--pad);
+      border-block-end: 1px solid var(--color-text);
+      grid-column: span 2;
+    }
+  }
+
+  form[data-current-step=1] {
+    .entry-btn-back { display: none; }
+    .entry-btn-submit { display: none; }
+
+    & fieldset:nth-of-type(1) { display: grid; }
+  }
+
+  form[data-current-step=2] {
+    .entry-btn-submit { display: none; }
+    
+    & fieldset:nth-of-type(2) { display: grid; }
+  }
+  
+  form[data-current-step=3] {
+    .entry-btn-next { display: none; }
+    & fieldset:nth-of-type(3) { display: grid; }
+  }
+
+  .actions {
+    display: flex;
+    gap: .5rem;
+    justify-content: flex-end;
+  }
+
+  legend, .legend {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .datetime-labels {
+    display: flex;
+    gap: .25rem
+  }
+
+  .datetime-inputs {
+    display: flex;
+    gap: .5rem;
+
+    & > * {
+      flex-shrink: 1;
+      max-width: 130px;
+    }
+  }
+
+</style>

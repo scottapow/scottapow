@@ -36,6 +36,9 @@ const { class: className, ...props } = Astro.props;
 
     dt { 
       font-weight: bold;
+      &:empty {
+        display: none;
+      }
     }
   }
 </style>

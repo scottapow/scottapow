@@ -7,7 +7,7 @@ export interface ITrack {
 }
 
 export type Type = 'number' | 'text';
-type GoalPrimitive = number | null;
+type GoalPrimitive = number;
 export type Goal<P = GoalPrimitive> = P;// | { su: P, m: P, tu: P, w: P, th: P, f: P, sa: P };
 export interface ITrackThing {
   id: number;
@@ -21,10 +21,15 @@ export interface ITrackThing {
 
 export interface ITrackEntry {
   id: string;
-  startTime: string;
-  endTime: string | null;
+  thingId: ITrackThing['id'],
+  /** GMT/UTC string (e.g. `"Fri, 10 Oct 2025 20:31:44 GMT"`) */
+  startAt: string;
+  /** GMT/UTC string (e.g. `"Fri, 10 Oct 2025 20:31:44 GMT"`) */
+  endAt: string | null;
+  /** GMT/UTC string (e.g. `"Fri, 10 Oct 2025 20:31:44 GMT"`) */
+  loggedAt: string;
   value: number | string;
-  notes: string | null;
+  note: string | null;
   // relatesTo?: ITrackEntry['id'];
   // relationType?: unknown;
 }
