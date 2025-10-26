@@ -10,6 +10,8 @@ export const entryCreateEventType = `${OS_NAME_ENTRIES}Add` as const;
 export const entryUpdateEventType = `${OS_NAME_ENTRIES}Update` as const;
 export const entryDeleteEventType = `${OS_NAME_ENTRIES}Delete` as const;
 
+const DEBUG = false;
+
 export class ClientDB {
   DB?: IDBDatabase;
   state: 'ready' | 'error' | 'idle' = 'idle';
@@ -39,13 +41,12 @@ export class ClientDB {
 
   async connect(name: string): Promise<typeof this> {
     return new Promise((resolve, reject) => {
-      console.log('hello');
       const request = window.indexedDB.open(name, V);
 
       request.onerror = () => {
-        console.log('onerror');
+        if (DEBUG) console.log('onerror');
         if (request.error) {
-          console.log('hello');
+          if (DEBUG) console.log('request error');
           reject(request.error.message);
         } else {
           reject(new Error('Unknown error on IndexedDB request'));
@@ -53,13 +54,13 @@ export class ClientDB {
       }
 
       request.onsuccess = (ev) => {
-        console.log('onsuccess');
+        if (DEBUG) console.log('onsuccess');
         this.DB = (ev.target as EventTarget & { result: IDBDatabase })?.result;
         resolve(this);
       }
 
       request.onupgradeneeded = (ev) => {
-        console.log('onupgradeneeded');
+        if (DEBUG) console.log('onupgradeneeded');
         this.DB = (ev.target as EventTarget & { result: IDBDatabase })?.result;
         try {
           const tracksOS: IDBObjectStore = this.DB?.createObjectStore(OS_NAME_TRACKS, { keyPath: 'id' })!;
@@ -102,7 +103,7 @@ export class ClientDB {
       let rq = index.get(slug);
 
       tx.oncomplete = (ev) => {
-        console.log(ev, rq.result);
+        if (DEBUG) console.log(ev, rq.result);
         resolve(rq.result as ITrack);
       }
 

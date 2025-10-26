@@ -51,6 +51,12 @@ const { title, description, image, ...mainProps } = Astro.props;
   </body>
 </html>
 
+<script>
+  import { watchTime } from "../utils/dateTimeEvents";
+
+  watchTime();
+</script>
+
 <style>
   html { 
     height: 100%;

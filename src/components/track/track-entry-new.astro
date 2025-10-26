@@ -35,8 +35,8 @@ const { slug } = Astro.props;
             <Form.Label for="time">Time</Form.Label>
           </div>
           <div class="datetime-inputs">
-            <Form.Input required type="date" id="date" name="date" value="" />
-            <Form.Input required type="time" id="time" name="time" value="" />
+            <Form.Input required type="date" id="date" name="date" />
+            <Form.Input required type="time" id="time" name="time" step="60" />
           </div>
         </fieldset>
       </div>
@@ -55,6 +55,8 @@ import { ClientDB, thingCreateEventType } from "../../features/db/client";
 import type { ITrackThing } from "../../features/track/types";
 import { CN_ENTRY_FORM, CN_THING_FIELD_NOTE, CN_THING_LABEL_NOTE, CN_THING_VALUE_INPUT, CN_THING_VALUE_LABEL, CN_THINGID_INPUT, CN_THINGNAME_HEADING, ID_TRACK_NEW_WRAP } from "../../features/track/constants";
 import { fade } from "astro:transitions";
+import { dayChangeEventType, minuteChangeEventType } from "../../utils/dateTimeEvents";
+import { getInputDate, getInputTime } from "../../utils/formatDateTimeForInput";
 
 function createThingForm(thing: ITrackThing) {
   let _form = document.querySelector(`.${CN_ENTRY_FORM}`)! as HTMLTemplateElement;
@@ -84,20 +86,43 @@ function addThingsFieldsToNewEntryForm(things: ITrackThing[]) {
   let entriesContainer = document.getElementById(ID_TRACK_NEW_WRAP)!;
   let forms = things.map(createThingForm);
   entriesContainer.append(...forms);
-
+  
   Array.from(entriesContainer.querySelectorAll('form') ?? []).map(f => {
-    console.log('f', f);
+    // form submission
     f.addEventListener('submit', handleFormSubmit);
 
+    // Add multi-step
     let btnBack = f.querySelector('.entry-btn-back')! as HTMLButtonElement;
     let btnNext = f.querySelector('.entry-btn-next')! as HTMLButtonElement;
     btnBack.addEventListener('click', () => { 
       let currentStep = Number(f.dataset.currentStep ?? '1');
       f.setAttribute('data-current-step', ((currentStep - 1) || 1).toString());
-    })
+    });
     btnNext.addEventListener('click', () => { 
       let currentStep = Number(f.dataset.currentStep ?? '1');
       f.setAttribute('data-current-step', Math.min(((currentStep + 1) || 1), 3).toString());
+    });
+
+    // set default time/date
+    let dateInput = f.querySelector('input[type=date]') as HTMLInputElement;
+    let timeInput = f.querySelector('input[type=time]') as HTMLInputElement;
+    if (dateInput && timeInput) {
+      let now = new Date();
+      let date = getInputDate(now);
+      let time = getInputTime(now);
+      dateInput.value = date;
+      timeInput.value = time;
+    }
+
+    document.addEventListener(minuteChangeEventType, (e: CustomEventInit<Date>) => {
+      let now = e.detail || new Date();
+      let time = getInputTime(now);
+      timeInput.value = time;
+    })
+    document.addEventListener(dayChangeEventType, (e: CustomEventInit<Date>) => {
+      let now = e.detail || new Date();
+      let date = getInputDate(now);
+      dateInput.value = date;
     })
   })
 }
@@ -123,27 +148,7 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
   // console.log(key);
 }
 
-function initNewEntryForms() {
-  let formEls = document.querySelectorAll<HTMLFormElement>(`.entry-form`) ?? [];
-  for (const _formEl of formEls) {
-    // remove all event listeners - necessary due to adding new "things" on the same page
-    // triggered by `thingCreateEventType`
-    let formEl = _formEl.cloneNode(true) as HTMLFormElement;
-    _formEl.parentNode?.replaceChild(formEl, _formEl);
-  }
-}
-
 (async () => {
-  // initNewEntryForms();
-  // document.addEventListener(thingCreateEventType, initNewEntryForms);
-
-  // const formEl = document.querySelector('.entry-form')!;
-  // formEl.addEventListener('click', (ev) => {
-  //   if (ev.target && ev.target instanceof Element) {
-  //     console.log(ev);
-  //   }
-  // })
-
   const Store = new ClientDB();
   await Store.connect("TRACKS");
 
