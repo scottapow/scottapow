@@ -3,7 +3,7 @@ import Button from "../../components/button.astro";
 import Card from "../../components/card.astro";
 import Form from "../../components/form";
 import TrackEntryNew from "../../components/track/track-entry-new.astro";
-import TrackEntry from "../../components/track/track-entry.astro";
+import TrackEntries from "../../components/track/track-entries.astro";
 import TrackMetric, { ID_THING_WRAPPER } from "../../components/track/track-metric.astro";
 import Typography from "../../components/typography.astro";
 import {
@@ -22,9 +22,9 @@ const { slug } = Astro.params as { slug: string };
   <Card>
     <Typography variant="h2" component="h2" class="heading">Today</Typography>
 
-    <div id='track-entries'>
+    <div class='track-entries'>
+      <TrackEntries slug={slug} />
       <TrackEntryNew slug={slug} />
-      <TrackEntry />
     </div>
 
   </Card>
@@ -170,10 +170,6 @@ const { slug } = Astro.params as { slug: string };
           toggleFormBtn.hidden = false;
         })
       }
-    }
-
-    {
-
     }
   })();
 </script>

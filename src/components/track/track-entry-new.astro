@@ -3,7 +3,7 @@ import Button from "../button.astro";
 import Form from "../form";
 import Note from "../icon/note.astro";
 import Typography from "../typography.astro";
-import { CN_ENTRY_FORM, CN_THINGID_INPUT, CN_THING_VALUE_LABEL, CN_THING_LABEL_NOTE, CN_THING_FIELD_NOTE, ID_TRACK_NEW_WRAP, CN_THINGNAME_HEADING, CN_THING_VALUE_INPUT } from "../../features/track/constants";
+import { CN_ENTRY_FORM, CN_THINGID_INPUT, CN_THING_VALUE_LABEL, CN_THING_LABEL_NOTE, CN_THING_FIELD_NOTE, ID_TRACK_NEW_WRAP, CN_THINGNAME_HEADING, CN_THING_VALUE_INPUT, CN_THINGNAME_HEADING_STEP } from "../../features/track/constants";
 
 type Props = {
   slug: string;
@@ -11,21 +11,24 @@ type Props = {
 
 const { slug } = Astro.props;
 ---
-<div id={ID_TRACK_NEW_WRAP} data-slug={slug}>
+<div id={ID_TRACK_NEW_WRAP} class="wrapper" data-slug={slug}>
   <template class={CN_ENTRY_FORM}>
     <form method="post" data-current-step="1">
       <Form.Input class={CN_THINGID_INPUT} name="thingId" type="hidden" />
-      <Typography class={CN_THINGNAME_HEADING} variant="h3" component="h3"></Typography>
+      <Typography variant="h4" component="h3">
+        <span class={CN_THINGNAME_HEADING}></span>
+        <span class={CN_THINGNAME_HEADING_STEP}>(Step 1 of 3)</span>
+      </Typography>
 
       <div>
         <fieldset data-step="1">
-          <Form.Label class={CN_THING_VALUE_LABEL} for="">Value</Form.Label>
-          <Form.Input class={CN_THING_VALUE_INPUT} name="value" required type="number" />
+          <Form.Label class={CN_THING_VALUE_LABEL}>Value</Form.Label>
+          <Form.Input class={CN_THING_VALUE_INPUT} placeholder="Enter a value" name="value" required type="number" autofocus />
         </fieldset>
 
         <fieldset data-step="2">
-          <Form.Label class={CN_THING_LABEL_NOTE} for="">Note</Form.Label>
-          <Form.Input class={CN_THING_FIELD_NOTE} name="note" type="text" />
+          <Form.Label class={CN_THING_LABEL_NOTE}>Note</Form.Label>
+          <Form.Input class={CN_THING_FIELD_NOTE} placeholder="Optional Note" name="note" type="text" autofocus />
         </fieldset>
 
         <fieldset data-step="3">
@@ -35,7 +38,7 @@ const { slug } = Astro.props;
             <Form.Label for="time">Time</Form.Label>
           </div>
           <div class="datetime-inputs">
-            <Form.Input required type="date" id="date" name="date" />
+            <Form.Input required type="date" id="date" name="date" autofocus />
             <Form.Input required type="time" id="time" name="time" step="60" />
           </div>
         </fieldset>
@@ -53,8 +56,7 @@ const { slug } = Astro.props;
 <script>
 import { ClientDB, thingCreateEventType } from "../../features/db/client";
 import type { ITrackThing } from "../../features/track/types";
-import { CN_ENTRY_FORM, CN_THING_FIELD_NOTE, CN_THING_LABEL_NOTE, CN_THING_VALUE_INPUT, CN_THING_VALUE_LABEL, CN_THINGID_INPUT, CN_THINGNAME_HEADING, ID_TRACK_NEW_WRAP } from "../../features/track/constants";
-import { fade } from "astro:transitions";
+import { CN_ENTRY_FORM, CN_THING_FIELD_NOTE, CN_THING_LABEL_NOTE, CN_THING_VALUE_INPUT, CN_THING_VALUE_LABEL, CN_THINGID_INPUT, CN_THINGNAME_HEADING, CN_THINGNAME_HEADING_STEP, ID_TRACK_NEW_WRAP } from "../../features/track/constants";
 import { dayChangeEventType, minuteChangeEventType } from "../../utils/dateTimeEvents";
 import { getInputDate, getInputTime } from "../../utils/formatDateTimeForInput";
 
@@ -92,15 +94,27 @@ function addThingsFieldsToNewEntryForm(things: ITrackThing[]) {
     f.addEventListener('submit', handleFormSubmit);
 
     // Add multi-step
+    let header = f.querySelector(`.${CN_THINGNAME_HEADING_STEP}`) as HTMLHeadingElement;
+
     let btnBack = f.querySelector('.entry-btn-back')! as HTMLButtonElement;
-    let btnNext = f.querySelector('.entry-btn-next')! as HTMLButtonElement;
     btnBack.addEventListener('click', () => { 
       let currentStep = Number(f.dataset.currentStep ?? '1');
-      f.setAttribute('data-current-step', ((currentStep - 1) || 1).toString());
+      let step = (currentStep - 1) || 1;
+      f.setAttribute('data-current-step', step.toString());
+      header.textContent = '(Step ' + step + ' of 3)';
     });
+
+    let btnNext = f.querySelector('.entry-btn-next')! as HTMLButtonElement;
     btnNext.addEventListener('click', () => { 
       let currentStep = Number(f.dataset.currentStep ?? '1');
-      f.setAttribute('data-current-step', Math.min(((currentStep + 1) || 1), 3).toString());
+      let step = Math.min(((currentStep + 1) || 1), 3);
+      let isValid = f.checkValidity();
+      if (isValid) {
+        f.setAttribute('data-current-step', step.toString());
+        header.textContent = '(Step ' + step + ' of 3)';
+      } else {
+        f.reportValidity();
+      }
     });
 
     // set default time/date
@@ -135,17 +149,16 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
 
   let formData = new FormData(this);
   let formObj = Object.fromEntries(formData.entries());
-  let startAt = (new Date(`${formObj.date} ${formObj.time}`)).toUTCString();
-  console.log(formObj);
-  // let key = await Store.addEntry({
-  //   startAt,
-  //   endAt: null,
-  //   loggedAt: new Date().toUTCString(),
-  //   note: formObj.note.toString(),
-  //   thingId: Number(formObj.thingId),
-  //   value: Number(formObj.value),
-  // });
-  // console.log(key);
+  let startAt = new Date(`${formObj.date} ${formObj.time}`);
+  let key = await Store.addEntry({
+    startAt,
+    endAt: null,
+    loggedAt: new Date().toUTCString(),
+    note: formObj.note.toString(),
+    thingId: Number(formObj.thingId),
+    value: Number(formObj.value),
+  });
+  console.log(key);
 }
 
 (async () => {
@@ -169,15 +182,17 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
   form fieldset { display: none; }
 
   form {
-    display: grid;
-    gap: .75rem;
     --pad: 1rem;
-    border: 3px solid var(--color-text);
+    display: grid;
+    column-gap: .75rem;
+    row-gap: var(--pad);
+    border-width: .25rem;
+    border-color: light-dark(var(--color-azure-900), var(--color-azure-600));
     padding: var(--pad);
     grid-template-columns: 1fr auto;
     align-items: end;
 
-    & h3 {
+    & > :is(h2,h3,h4,h5,h6) {
       margin-inline: calc(-1 * var(--pad));
       margin-block-start: calc(-1 * var(--pad));
       padding-block: calc(var(--pad) / 2);
@@ -205,6 +220,12 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
     & fieldset:nth-of-type(3) { display: grid; }
   }
 
+  .wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 1.5rem;
+  }
+
   .actions {
     display: flex;
     gap: .5rem;
@@ -227,7 +248,7 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
 
     & > * {
       flex-shrink: 1;
-      max-width: 130px;
+      max-width: 144px;
     }
   }
 

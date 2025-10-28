@@ -1,7 +1,7 @@
 import type { ITrack, ITrackEntry, ITrackThing } from "../../track/types";
 import type { IStore } from "./types";
 
-const V = 1; // cannot be a float
+const V = 2; // cannot be a float
 export const OS_NAME_TRACKS = 'tracks' as const;
 export const OS_NAME_THINGS = 'things' as const;
 export const OS_NAME_ENTRIES = 'entries' as const;
@@ -72,13 +72,19 @@ export class ClientDB {
           thingsOS?.createIndex('trackId', 'trackId', { unique: false }); // FK
 
           const entriesOD: IDBObjectStore = this.DB?.createObjectStore(OS_NAME_ENTRIES, { keyPath: 'id', autoIncrement: true })!;
-          thingsOS?.createIndex('id', 'id', { unique: true }); // PK
-          thingsOS?.createIndex('thingId', 'thingId', { unique: false }); // FK
+          entriesOD?.createIndex('id', 'id', { unique: true }); // PK
+          entriesOD?.createIndex('thingId', 'thingId', { unique: false }); // FK
+          entriesOD?.createIndex('startAt', 'startAt', { unique: false }); // FK
+          entriesOD?.createIndex('endAt', 'endAt', { unique: false }); // FK
+          entriesOD?.createIndex('note', 'note', { unique: false }); // FK
 
           tracksOS.transaction.onerror = (ev) => {
             reject(new Error('Failed to created object store'));
           }
           thingsOS.transaction.onerror = (ev) => {
+            reject(new Error('Failed to created object store'));
+          }
+          entriesOD.transaction.onerror = (ev) => {
             reject(new Error('Failed to created object store'));
           }
         } catch (error) {
@@ -152,6 +158,37 @@ export class ClientDB {
 
       tx.oncomplete = (ev) => {
         resolve(rq.result as ITrackThing[]);
+      }
+
+      tx.onerror = (ev) => {
+        let event = ev as Event & { target: IDBRequest };
+        reject(new Error('Failed to get tracks', { cause: event.target.error }));
+      };
+    });
+  }
+
+  async getEntriesDaily(thing: ITrackThing): Promise<ITrackEntry[]> {
+    let beginning = (new Date())
+    beginning.setHours(0, 0, 0, 0);
+    let end = (new Date());
+    end.setHours(23, 59, 59, 999)
+    console.log(beginning, end.toLocaleString())
+    let tx = this.DB?.transaction(OS_NAME_ENTRIES, "readonly");
+    return new Promise((resolve, reject) => {
+
+      if (!tx) {
+        reject(new Error('Failed to create transaction'));
+        return;
+      }
+
+      let os = tx?.objectStore(OS_NAME_ENTRIES);
+      let index = os.index('startAt');
+      let rq = index.getAll(IDBKeyRange.bound(beginning, end)) as IDBRequest<ITrackEntry[]>;
+
+      tx.oncomplete = (ev) => {
+        console.log(rq.result);
+        let filteredResults = rq.result.filter(entry => entry.thingId === thing.id);
+        resolve(filteredResults);
       }
 
       tx.onerror = (ev) => {

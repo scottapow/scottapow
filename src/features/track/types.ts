@@ -23,9 +23,9 @@ export interface ITrackEntry {
   id: string;
   thingId: ITrackThing['id'],
   /** GMT/UTC string (e.g. `"Fri, 10 Oct 2025 20:31:44 GMT"`) */
-  startAt: string;
+  startAt: Date;
   /** GMT/UTC string (e.g. `"Fri, 10 Oct 2025 20:31:44 GMT"`) */
-  endAt: string | null;
+  endAt: Date | null;
   /** GMT/UTC string (e.g. `"Fri, 10 Oct 2025 20:31:44 GMT"`) */
   loggedAt: string;
   value: number | string;

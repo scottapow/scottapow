@@ -15,8 +15,15 @@ export const CN_ENTRY_FORM = 'entry-form';
 export const CN_ENTRY_FORM_INNER = 'inner';
 export const CN_THINGID_INPUT = 'thingid-input';
 export const CN_THINGNAME_HEADING = 'thingname';
+export const CN_THINGNAME_HEADING_STEP = 'thing-heading-step';
 export const CN_THING_VALUE_INPUT = 'thing-field-value';
 export const CN_THING_VALUE_LABEL = 'thing-label-value';
 export const CN_THING_FIELD_NOTE = 'thing-field-note';
 export const CN_THING_LABEL_NOTE = 'thing-label-note';
 export const ID_TRACK_NEW_WRAP = 'track-new-wrapper';
+
+export const ID_ENTRIES_WRAP = 'entries-wrap';
+export const CN_ENTRY = 'entry';
+export const CN_ENTRY_NAME = 'entry-name';
+export const CN_ENTRY_VALUE = 'entry-value';
+export const CN_ENTRY_DETAIL = 'entry-detail';

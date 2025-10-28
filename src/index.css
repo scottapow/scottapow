@@ -68,10 +68,13 @@ p, h1, h2, h3, h4, h5, h6 {
   /* color scheme definitions */
   --color-text: #000;
   --color-bg: #fff;
+  --color-invalid: #cd0808;
+  --color-valid: #09a209;
   --color-text-french-violet: var(--color-french-violet-100);
   --color-bg-french-violet: var(--color-french-violet-500);
   --color-outline1: var(--color-french-violet-100);
   --color-outline2: var(--color-french-violet-800);
+  --shadow-color: light-dark(var(--color-french-violet-100), var(--color-french-violet-100))
 }
 
 :focus-visible {

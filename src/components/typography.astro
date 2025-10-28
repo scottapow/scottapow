@@ -2,7 +2,7 @@
 import type { HTMLAttributes, HTMLTag } from 'astro/types';
 
 type Props<C extends HTMLTag> = HTMLAttributes<C> & {
-  variant: 'h1' | 'h2' | 'h3' | 'p' | 'lead' | 'link' | 'small';
+  variant: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'lead' | 'link' | 'small';
   color?: 'default' | 'violet' | 'aquamarine';
   /** default: 'span' */
   component?: C;
@@ -39,6 +39,11 @@ const Component = component;
     font-size: 1.5rem;
     line-height: calc(2 / 1.5);
     font-weight: 600;
+  }
+  .h4 {
+    font-size: 1.25rem;
+    line-height: calc(2 / 1.5);
+    font-weight: 700;
   }
   .p {
     font-size: 1rem;
