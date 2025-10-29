@@ -9,10 +9,10 @@ const { slug, class: className, ...props } = Astro.props;
 <div id={ID_ENTRIES_WRAP} data-slug={slug}>
   <template class={CN_ENTRY}>
     <details class:list={[className, 'entries-details']} {...props}>
-      <Typography variant="p" component="summary" class="summary">
+      <Typography variant="h4" component="summary" class="summary">
         <div class="overview">
-          <Typography variant="lead" component="strong" class={CN_ENTRY_NAME}>Calories</Typography>
-          <Typography variant="lead" component="span" class:list={[CN_ENTRY_VALUE, 'value']}>2000</Typography>
+          <Typography variant="lead" component="strong" class={CN_ENTRY_NAME}></Typography>
+          <Typography variant="lead" component="span" class:list={[CN_ENTRY_VALUE, 'value']}></Typography>
         </div>
       </Typography>
 
@@ -106,7 +106,6 @@ async function addThingsEntries(things: ITrackThing[]): Promise<void> {
     &[open] .overview::after {
       content: '▲';
     }
-    margin-block-end: 2rem;
   }
   .value {
     text-decoration: underline;

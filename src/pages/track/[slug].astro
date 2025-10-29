@@ -22,11 +22,10 @@ const { slug } = Astro.params as { slug: string };
   <Card>
     <Typography variant="h2" component="h2" class="heading">Today</Typography>
 
-    <div class='track-entries'>
-      <TrackEntries slug={slug} />
-      <TrackEntryNew slug={slug} />
-    </div>
-
+    <TrackEntries slug={slug} />
+  </Card>
+  <Card>
+    <TrackEntryNew slug={slug} />
   </Card>
   <Card>
     <Typography variant="h2" component="h2" class="heading">Metrics</Typography>
@@ -176,7 +175,7 @@ const { slug } = Astro.params as { slug: string };
 
 <style>
   .heading {
-    margin-block-end: 1.5rem;
+    margin-block-end: 1rem;
   }
   .wrapper {
     margin-block-end: 2rem;

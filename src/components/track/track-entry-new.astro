@@ -17,29 +17,30 @@ const { slug } = Astro.props;
       <Form.Input class={CN_THINGID_INPUT} name="thingId" type="hidden" />
       <Typography variant="h4" component="h3">
         <span class={CN_THINGNAME_HEADING}></span>
-        <span class={CN_THINGNAME_HEADING_STEP}>(Step 1 of 3)</span>
+        <span class:list={[CN_THINGNAME_HEADING_STEP, 'step']}>(Step 1 of 3)</span>
       </Typography>
 
       <div>
         <fieldset data-step="1">
           <Form.Label class={CN_THING_VALUE_LABEL}>Value</Form.Label>
-          <Form.Input class={CN_THING_VALUE_INPUT} placeholder="Enter a value" name="value" required type="number" autofocus />
+          <Form.Input class={CN_THING_VALUE_INPUT} placeholder="Enter a value" name="value" required type="number" />
         </fieldset>
 
         <fieldset data-step="2">
           <Form.Label class={CN_THING_LABEL_NOTE}>Note</Form.Label>
-          <Form.Input class={CN_THING_FIELD_NOTE} placeholder="Optional Note" name="note" type="text" autofocus />
+          <Form.Input class={CN_THING_FIELD_NOTE} placeholder="Optional Note" name="note" type="text" />
         </fieldset>
 
         <fieldset data-step="3">
-          <div class="datetime-labels">
-            <Form.Label for="date">Date</Form.Label>
-            <span>/</span>
-            <Form.Label for="time">Time</Form.Label>
-          </div>
-          <div class="datetime-inputs">
-            <Form.Input required type="date" id="date" name="date" autofocus />
-            <Form.Input required type="time" id="time" name="time" step="60" />
+          <div class="datetime-fields">
+            <div class="date-field">
+              <Form.Label for="date">Date</Form.Label>
+              <Form.Input required type="date" id="date" name="date" />
+            </div>
+            <div class="time-field">
+              <Form.Label for="time">Time</Form.Label>
+              <Form.Input required type="time" id="time" name="time" step="60" />
+            </div>
           </div>
         </fieldset>
       </div>
@@ -118,22 +119,16 @@ function addThingsFieldsToNewEntryForm(things: ITrackThing[]) {
     });
 
     // set default time/date
+    setDateTimeToNow(f);
+
     let dateInput = f.querySelector('input[type=date]') as HTMLInputElement;
     let timeInput = f.querySelector('input[type=time]') as HTMLInputElement;
-    if (dateInput && timeInput) {
-      let now = new Date();
-      let date = getInputDate(now);
-      let time = getInputTime(now);
-      dateInput.value = date;
-      timeInput.value = time;
-    }
-
-    document.addEventListener(minuteChangeEventType, (e: CustomEventInit<Date>) => {
+    f.addEventListener(minuteChangeEventType, (e: CustomEventInit<Date>) => {
       let now = e.detail || new Date();
       let time = getInputTime(now);
       timeInput.value = time;
     })
-    document.addEventListener(dayChangeEventType, (e: CustomEventInit<Date>) => {
+    f.addEventListener(dayChangeEventType, (e: CustomEventInit<Date>) => {
       let now = e.detail || new Date();
       let date = getInputDate(now);
       dateInput.value = date;
@@ -158,7 +153,23 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
     thingId: Number(formObj.thingId),
     value: Number(formObj.value),
   });
-  console.log(key);
+  this.reset();
+  this.dataset.currentStep = "1";
+  setDateTimeToNow(this);
+  let header = this.querySelector(`.${CN_THINGNAME_HEADING_STEP}`) as HTMLHeadingElement;
+  header.textContent = '(Step 1 of 3)';
+}
+
+function setDateTimeToNow(f: HTMLFormElement) {
+  let dateInput = f.querySelector('input[type=date]') as HTMLInputElement;
+  let timeInput = f.querySelector('input[type=time]') as HTMLInputElement;
+  if (dateInput && timeInput) {
+    let now = new Date();
+    let date = getInputDate(now);
+    let time = getInputTime(now);
+    dateInput.value = date;
+    timeInput.value = time;
+  }
 }
 
 (async () => {
@@ -180,7 +191,6 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
 
 <style>
   form fieldset { display: none; }
-
   form {
     --pad: 1rem;
     display: grid;
@@ -199,6 +209,13 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
       padding-inline: var(--pad);
       border-block-end: 1px solid var(--color-text);
       grid-column: span 2;
+    }
+
+    @container (width < 448px) {
+      column-gap: 0;
+      & .actions {
+        grid-column: span 2;
+      }
     }
   }
 
@@ -220,10 +237,16 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
     & fieldset:nth-of-type(3) { display: grid; }
   }
 
+  .step {
+    font-size: .75em;
+    white-space: nowrap;
+  }
+
   .wrapper {
     display: grid;
     grid-template-columns: 1fr;
     row-gap: 1.5rem;
+    container-type: inline-size;
   }
 
   .actions {
@@ -237,19 +260,21 @@ async function handleFormSubmit(this: HTMLFormElement, ev: Event) {
     font-weight: 600;
   }
 
-  .datetime-labels {
+  .datetime-fields {
     display: flex;
-    gap: .25rem
+    gap: .25rem;
   }
 
-  .datetime-inputs {
-    display: flex;
-    gap: .5rem;
+  ::view-transition-group(root) {
+    animation-duration: 0.5s;
+  }
 
-    & > * {
-      flex-shrink: 1;
-      max-width: 144px;
-    }
+  ::view-transition-group(form-refresh) {
+    height: 100%;
+  }
+  
+  form, fieldset {
+    view-transition-name: form-refresh;
   }
 
 </style>
