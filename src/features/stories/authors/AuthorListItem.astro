@@ -1,0 +1,80 @@
+---
+import Typography from "../../../components/typography.astro";
+
+type Props = {
+  fullname: string;
+  slug: string;
+  headshotURL: string;
+  description: string;
+}
+
+const { fullname, slug, headshotURL, description } = Astro.props;
+---
+<article>
+  <figure>
+    <img src={headshotURL} alt={`headshot of ${fullname}`} />
+  </figure>
+  <Typography variant="h3" component="h2">
+    <a href={`/authors/${slug}`}>{fullname}</a>
+  </Typography>
+  <div class="content">
+    <p>{description}</p>
+    <footer>
+      <Typography variant="link" component="a" href={`/authors/${slug}`}>
+        View Author Page
+      </Typography>
+    </footer>
+  </div>
+</article>
+
+<style>
+  article {
+    border: 1px solid var(--color-azure-900);
+    background-color: light-dark(var(--color-aquamarine-500), var(--color-aquamarine-900));
+    color: light-dark(var(--color-aquamarine-900), var(--color-aquamarine-500));
+    min-height: 350px;
+    position: relative;
+  }
+  article figure {
+    position: relative;
+    inset: 0;
+    anchor-name: --headshot;
+    
+    & img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+      object-position: center center;
+    }
+
+    &::after {
+      content: '';
+      width: 100%;
+      display: block;
+      height: 5rem;
+      background: linear-gradient(to bottom, rgb(0 0 0 / .75), rgb(0 0 0 / .0));
+      top: 0;
+      position: absolute;
+    }
+  }
+  h2 {  
+    position: absolute;
+    position-anchor: --headshot;
+    color: white;
+    top: calc(anchor(--headshot top) + 1rem);
+    left: calc(anchor(--headshot left) + 1rem);
+
+    & a:hover {
+      color: var(--color-azure-400);
+    }
+  }
+  .content {
+    position: relative;
+    z-index: 1;
+    padding: 1rem;
+
+    & footer {
+      padding-block-start: 1rem;
+    }
+  }
+</style>

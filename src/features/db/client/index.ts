@@ -143,6 +143,31 @@ export class ClientDB {
     });
   }
 
+  async getThingById(id: ITrackThing['id']): Promise<ITrackThing> {
+    let tx = this.DB?.transaction(OS_NAME_THINGS, "readonly");
+    return new Promise((resolve, reject) => {
+
+      if (!tx) {
+        reject(new Error('Failed to create transaction'));
+        return;
+      }
+
+      let os = tx?.objectStore(OS_NAME_THINGS);
+      let index = os?.index('id');
+      let rq = index.get(id);
+
+      tx.oncomplete = (ev) => {
+        if (DEBUG) console.log(ev, rq.result);
+        resolve(rq.result as ITrackThing);
+      }
+
+      tx.onerror = (ev) => {
+        let event = ev as Event & { target: IDBRequest };
+        reject(new Error('Failed to get thing', { cause: event.target.error }));
+      };
+    });
+  }
+
   async getThingsById(id: ITrack['id']): Promise<Array<ITrackThing>> {
     let tx = this.DB?.transaction(OS_NAME_THINGS, "readonly");
     return new Promise((resolve, reject) => {
@@ -167,12 +192,7 @@ export class ClientDB {
     });
   }
 
-  async getEntriesDaily(thing: ITrackThing): Promise<ITrackEntry[]> {
-    let beginning = (new Date())
-    beginning.setHours(0, 0, 0, 0);
-    let end = (new Date());
-    end.setHours(23, 59, 59, 999)
-    console.log(beginning, end.toLocaleString())
+  async getEntriesRange(thing: ITrackThing, start: Date, end: Date): Promise<ITrackEntry[]> {
     let tx = this.DB?.transaction(OS_NAME_ENTRIES, "readonly");
     return new Promise((resolve, reject) => {
 
@@ -183,7 +203,7 @@ export class ClientDB {
 
       let os = tx?.objectStore(OS_NAME_ENTRIES);
       let index = os.index('startAt');
-      let rq = index.getAll(IDBKeyRange.bound(beginning, end)) as IDBRequest<ITrackEntry[]>;
+      let rq = index.getAll(IDBKeyRange.bound(start, end)) as IDBRequest<ITrackEntry[]>;
 
       tx.oncomplete = (ev) => {
         console.log(rq.result);
